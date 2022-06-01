@@ -1,0 +1,519 @@
+﻿LAUNCHES_REC_ID,LAUNCH_DATE,VEHICLE_NAME,PAD_NAME,PAYLOAD,AGENCY,PURPOSE,ORBIT_TYPE,OUTCOME,SPACE_LAUNCH_REPORT_FLAG,GUNTER_FLAG,SPACE_FLIGHT_NOW_FLAG,NOONAN_FLAG,AST_FLAG,WIKIPEDIA_FLAG,JSR_FLAG,SPACEPORT_REC_ID
+1,00:00.0,STIG-B III,NULL,Scientific,Armadillo Aerospace,NULL,NULL,Failure,0,0,0,0,1,0,1,19
+2,00:00.0,Ground Based Interceptor,LF-23,NULL,Missile Defense Agency,Anti-ballistic missile test,Sub-orbital,Successful,0,0,0,0,0,1,1,23
+3,50:00.0,Terrier Improved Orion,LA-2,NULL,NASA,Atmospheric Experiments,Sub-orbital,Successful,0,0,0,0,0,1,1,9
+4,48:00.0,Atlas 5-401,SLC-41,TDRS-K,United Launch Alliance,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+5,56:00.0,Zenit 3SL/DMSL,Odyssey,Intelsat 27,"Energia Logistics, Ltd. (ELUS)",Communications,NULL,Failure,1,1,1,0,1,1,0,NULL
+6,21:00.0,Talos Terrier Oriole Nihka,LC-4,NULL,NASA,Auroral Research,Sub-orbital,Successful,0,0,0,0,0,1,1,15
+7,02:00.0,Atlas 5-401,SLC-3E,LCDM (Landsat 8),United Launch Alliance,Earth Observation,Heliocentric,Operational,1,1,1,0,0,1,1,23
+8,10:00.0,MRBTM,NULL,NULL,Missile Defense Agency,ABM Target,Sub-orbital,Successful,0,0,0,0,0,1,1,13
+9,15:00.0,RIM-161C Standard Missile 3 Block 1A,NULL,NULL,US Navy,ABM Test,Sub-orbital,Successful,0,0,0,0,0,1,1,NULL
+10,34:00.0,Terrier Improved Orion,NULL,NULL,NASA,Technology,Sub-orbital,Successful,0,0,0,0,0,1,1,24
+11,10:00.0,Falcon 9 v1.0,SLC-40,Dragon CRS-2,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+12,00:00.0,Grasshopper,NULL,NULL,SpaceX,Testing,NULL,Successful,0,0,0,0,1,0,1,21
+13,10:00.0,Terrier Lynx,LA-2,NULL,DoD,Radar Target,Sub-orbital,Successful,0,0,0,0,0,1,1,9
+14,21:00.0,Atlas 5-401,SLC-41,SBIRS GEO-2,US Air Force,Missile Detection,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+15,00:00.0,Dragon,NULL,CRS-2,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+16,36:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+17,00:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+18,00:00.0,Grasshopper,NULL,NULL,SpaceX,NULL,NULL,Successful,0,0,0,0,1,0,1,21
+19,00:00.0,Dove 2,NULL,NULL,Cosmogia,Technology,Low Earth,Operational,0,0,0,0,0,1,0,NULL
+20,00:00.0,Black Brant IX,NULL,NULL,NASA,Astronomy,Sub-orbital,Successful,0,0,0,0,0,1,1,24
+21,00:00.0,Antares 110,LP-0A,Cygnus Mass Simulator,Orbital ATK,Demonstration,Low Earth,Operational,1,1,1,0,1,1,1,9
+22,30:00.0,Black Brant IX,NULL,NULL,NASA,Solar Research,Sub-orbital,Successful,0,0,0,0,0,1,1,24
+23,52:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,1,0,1,11
+24,00:00.0,X-51A,NULL,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,6
+25,38:00.0,Terrier Improved Orion,NULL,NULL,NASA,Ionospheric Research,Sub-orbital,Successful,0,0,0,0,0,1,0,16
+26,39:00.0,Terrier Oriole,NULL,NULL,NASA,Atmospheric Experiments,Sub-orbital,Successful,0,0,0,0,0,1,0,16
+27,40:30.0,Terrier Imp Malemute,NULL,NULL,NASA,Atmospheric Experiments,Sub-orbital,Successful,0,0,0,0,0,1,0,16
+28,23:00.0,Terrier Improved Orion,NULL,NULL,NASA,Ionospheric Research,Sub-orbital,Successful,0,0,0,0,0,1,0,16
+29,00:00.0,Black Brant IX,NULL,NULL,NASA,Astronomy,Sub-orbital,Successful,0,0,0,0,0,1,1,24
+30,38:00.0,Atlas 5-401,SLC-41,GPS 2F-4,US Air Force,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+31,25:00.0,ARAV-C,NULL,NULL,US Army,AMB Target,Sub-orbital,Successful,0,0,0,0,0,1,1,13
+32,30:00.0,RIM-161C Standard Missile 3 Block 1B,NULL,NULL,US Navy,ABM Test,Sub-orbital,Successful,0,0,0,0,0,1,1,NULL
+33,27:00.0,LGM-30G Minuteman III,LF-04,NULL,US Air Force,Test Flight,Sub-orbital,Successful,0,0,0,0,0,1,1,23
+34,27:00.0,"Delta 4M+(5,4)",SLC-37B,WGS 5,US Air Force,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+35,05:00.0,Black Brant XII,LA-1,NULL,NASA,Astronomy,Sub-orbital,Successful,0,0,0,0,0,1,1,9
+36,00:00.0,Grasshopper,NULL,NULL,SpaceX,NULL,NULL,Successful,0,0,0,0,1,0,1,21
+37,36:00.0,Terrier Mk 12 Imp Orion,LA-1,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+38,30:00.0,Terrier Improved Orion,NULL,NULL,NASA,Student Experiments,Sub-orbital,Successful,0,0,0,0,0,1,0,9
+39,57:00.0,SpaceLoft XL,NULL,NULL,NASA,Student Experiments,Sub-orbital,Successful,0,0,0,0,0,1,1,19
+40,27:00.0,Pegasus XL,L-1011,IRIS,Orbital Sciences Corp,Sun Imaging & Measurements,Low Earth,Operational,1,1,1,0,0,1,1,23
+41,31:00.0,Black Brant VB,LA-2,NULL,NASA,Geospace,Sub-orbital,Successful,0,0,0,0,0,1,1,9
+42,31:15.0,Terrier Improved Orion,LA-2,NULL,NASA,Geospace,Sub-orbital,Successful,0,0,0,0,0,1,1,9
+43,29:00.0,UGM-96 Trident I,NULL,NULL,Missile Defense Agency,ABM Target,Sub-orbital,Successful,0,0,0,0,0,1,0,NULL
+44,35:00.0,Ground Based Interceptor,LF-23,NULL,Missile Defense Agency,ABM Test,NULL,Failure,0,0,0,0,0,1,1,23
+45,00:00.0,Atlas 5-551,SLC-41,MUOS 2,US Navy,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+46,00:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+47,29:00.0,"Delta 4M+(5,4)",SLC-37B,WGS 6,US Air Force,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+48,52:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+49,10:00.0,Black Brant IX,NULL,NULL,US Naval Research Lab,Solar Research,Sub-orbital,Successful,0,0,0,0,0,1,1,24
+50,00:00.0,Grasshopper,NULL,NULL,SpaceX,NULL,NULL,Successful,0,0,0,0,1,0,1,21
+51,00:00.0,Terrier Imp Malemute,LA-2,NULL,NASA,Student Experiments,Sub-orbital,Successful,0,0,0,0,0,1,1,9
+52,00:00.0,R-UNK,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+53,03:00.0,Delta 4 Heavy,SLC-6,NROL 65,US National Reconnaissance Office,Spy Satellite,Low Earth,Operational,1,1,1,0,0,1,1,23
+54,04:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,1,0,1,11
+55,27:00.0,Minotaur 5,LP-0B,LADEE,NASA,Moon Explorer,Moon,Successful,1,1,1,0,0,1,1,9
+56,00:00.0,UGM-133 Trident II D5,NULL,NULL,US Navy,Test Flight,Sub-orbital,Successful,0,0,0,0,0,1,1,NULL
+57,00:00.0,eMRBM,NULL,NULL,Missile Defense Agency,ABM Target,Sub-orbital,Successful,0,0,0,0,0,1,0,NULL
+58,00:00.0,MRBM,NULL,NULL,Missile Defense Agency,ABM Target,Sub-orbital,Successful,0,0,0,0,0,1,0,17
+59,00:00.0,Standard Missile 3 Block 1A,NULL,NULL,US Navy,ABM Test,Sub-orbital,Successful,0,0,0,0,0,1,1,NULL
+60,00:00.0,THAAD,NULL,NULL,US Navy,ABM Test,Sub-orbital,Successful,0,0,0,0,0,1,0,8
+61,00:00.0,UGM-133 Trident II D5,NULL,NULL,US Navy,Test Flight,Sub-orbital,Successful,0,0,0,0,0,1,1,NULL
+62,30:00.0,ARAV-C++,NULL,NULL,Missile Defense Agency,ABM Target,Sub-orbital,Successful,0,0,0,0,0,1,1,13
+63,32:00.0,RIM-161C Standard Missile 3 Block 1B,NULL,NULL,US Navy,ABM Test,Sub-orbital,Successful,0,0,0,0,0,1,1,NULL
+64,04:00.0,Atlas 5-531,SLC-41,AEHF 3,US Air Force,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+65,58:00.0,Antares 110,LP-0A,Cygnus ORB-D1,Orbital ATK,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,9
+66,01:00.0,LGM-30G Minuteman III,LF-10,NULL,US Air Force,Test Flight,Sub-orbital,Successful,0,0,0,0,0,1,1,23
+67,33:00.0,LGM-30G Minuteman III,LF-9,NULL,US Air Force,Test Flight,Sub-orbital,Successful,0,0,0,0,0,1,1,23
+68,00:00.0,Falcon 9 v1.1,SLC-4E,Cassiope/5 Cubesats,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,23
+69,33:00.0,ARAV-ER,NULL,NULL,Missile Defense Agency,ABM Target,Sub-orbital,Successful,0,0,0,0,0,1,1,13
+70,37:00.0,RIM-161C Standard Missile 3 Bloack 1B,NULL,NULL,US Navy,ABM Test,Sub-orbital,Successful,0,0,0,0,0,1,1,NULL
+71,00:00.0,Grasshopper,NULL,NULL,SpaceX,NULL,NULL,Successful,0,0,0,0,1,0,1,21
+72,00:00.0,Black Brant IX,NULL,NULL,NASA,Solar Dynamics Observatory Calibration,Sub-orbital,Successful,0,0,0,0,0,1,1,24
+73,25:00.0,Black Brant IX,NULL,NULL,NASA,X-ray Astronomy,Sub-orbital,Successful,0,0,0,0,0,1,1,24
+74,15:00.0,SpaceLoft XL,NULL,NULL,NASA,Technology,Sub-orbital,Successful,0,0,0,0,0,1,1,19
+75,28:00.0,Atlas 5-401,SLC-41,MAVEN,NASA,Mars Exploration,Areocentric,Operational,1,1,1,0,0,1,1,2
+76,45:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+77,15:00.0,Minotaur 1,LP-0B,ORS 3,US Air Force,Technology Experiments,Low Earth,Successful,1,1,1,0,1,1,1,9
+78,55:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+79,41:00.0,Falcon 9 v1.1,SLC-40,SES 8,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+80,14:30.0,Atlas 5-501,SLC-3E,NROL 39,US National Reconnaissance Office,Classified,Low Earth,Operational,1,1,1,0,0,1,1,23
+81,45:00.0,Spaceship Two,NULL,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+82,36:00.0,LGM-30G Minuteman III,LF-04,NULL,US Air Force,Test Flight,Sub-orbital,Successful,0,0,0,0,0,1,1,23
+83,06:00.0,Falcon 9 v1.1,SLC-40,Thaicom 6,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+84,07:00.0,Antares 120,LP-0A,Cygnus/Orb 1,Orbital ATK,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,9
+85,04:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,1,0,1,11
+86,07:00.0,Terrier Improved Orion,LA-2,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+87,07:00.0,Terrier Improved Orion,LA-2,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+88,07:00.0,Terrier Improved Orion,LA-2,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+89,02:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+90,33:00.0,Atlas 5-401,SLC-41,TDRS-L,NASA,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+91,59:00.0,"Delta 4M+(4,2)",SLC-37B,GPS 2F-5,US Air Force,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+92,16:00.0,Black Brant IX,LC-3,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+93,46:00.0,Atlas 5-401,SLC-3E,DMSP F19,US Air Force,Weather Forecasting,Low Earth,Inoperable,1,1,1,0,0,1,1,23
+94,45:00.0,Atlas 5-541,SLC-41,NRO L-67,US National Reconnaissance Office,Classified,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+95,00:00.0,Falcon 9R,NULL,NULL,SpaceX,NULL,NULL,Successful,0,0,0,0,1,0,1,21
+96,25:22.0,Falcon 9 v1.1,SLC-40,CRS-3 Dragon,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+97,00:00.0,Falcon 9R,NULL,NULL,SpaceX,NULL,NULL,Successful,0,0,0,0,1,0,1,21
+98,55:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+99,03:00.0,"Delta 4M+(4,2)",SLC-37B,GPS 2F-6,US Air Force,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+100,00:00.0,Dragon,NULL,CRS-3,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+101,31:00.0,SM-3-IB,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+102,09:00.0,Atlas 5-401,SLC-41,NROL-33,US National Reconnaissance Office,Classified,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+103,40:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+104,10:00.0,Zenit 3SL/DMSL,Odyssey,Eutelsat 3B,"Energia Logistics, Ltd. (ELUS)",Communications,Geosynchronous,NULL,1,1,1,0,1,0,0,NULL
+105,00:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+106,00:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+107,04:00.0,Falcon 9R,NULL,NULL,SpaceX,NULL,NULL,Successful,0,0,0,0,1,0,1,21
+108,57:00.0,Ground Based Interceptor,LF-23,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+109,16:00.0,Terrier Mk 12 Imp Orion,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+110,07:00.0,LDSD,NULL,NULL,Jet Propulsion Lab,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+111,38:00.0,Terrier Imp Malemute,LA-2,NULL,NASA,NULL,NULL,Failure,0,0,0,0,0,0,1,9
+112,56:23.0,Delta 2-7320-10C,SLC-2W,OCO 2,NASA,Earth Observation,Low Earth,Operational,0,1,1,0,0,1,1,23
+113,52:14.0,Antares 120,LP-0A,Cygnus/Orb-2,Orbital ATK,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,9
+114,38:00.0,CSXT,NULL,NULL,Civilian Space Exploration Team,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+115,15:00.0,Falcon 9 v1.1,SLC-40,Orbcomm OG2 (6sats),SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,2
+116,12:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+117,28:00.0,"Delta 4M+(4,2)",SLC-37B,2xGSSAP/ANGELS,US Air Force,Space Awareness,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+118,52:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+119,00:00.0,Falcon 9R,NULL,NULL,SpaceX,NULL,NULL,NULL,0,0,0,0,1,0,1,21
+120,23:00.0,Atlas 5-401,SLC-41,GPS 2F7,US Air Force,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+121,00:00.0,Falcon 9 v1.1,SLC-40,Asiasat 8,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+122,00:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+123,30:30.0,Atlas 5-401,SLC-3E,Worldview 3,DigitalGlobe,Earth Observation,Low Earth,Operational,1,1,1,0,1,1,1,23
+124,48:00.0,Falcon 9R,NULL,NULL,SpaceX,NULL,NULL,Failure,0,0,0,0,0,0,1,21
+125,12:00.0,Terrier Lynx,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+126,24:00.0,STARS,LP-2,NULL,Missile Defense Agency,NULL,NULL,Failure,0,0,0,0,0,0,1,14
+127,07:00.0,Black Brant IX,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+128,52:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+129,00:00.0,Falcon 9 v1.1,SLC-40,Asiasat 6,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+130,10:00.0,Atlas 5-401,SLC-41,Nemesis 2/CLIO,United Launch Alliance,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+131,52:03.0,Falcon 9 v1.1,SLC-40,CRS-4 Dragon,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+132,38:00.0,Minuteman 3,LF-09,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+133,00:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+134,04:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+135,33:00.0,Terrier Lynx,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+136,12:00.0,MRBM-T3,NULL,NULL,US Army,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+137,26:00.0,SpaceLoft XL,NULL,NULL,UP Aerospace,NULL,NULL,Successful,0,0,0,0,0,0,1,19
+138,00:00.0,Dragon,NULL,CRS-4,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+139,22:38.0,Antares 130,LP-0A,Cygnus/Orb-3,Orbital ATK,ISS Delivery,NULL,Failure,1,1,1,0,1,1,1,9
+140,21:00.0,Atlas 5-401,SLC-41,GPS 2F-8,US Air Force,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+141,02:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Failure,0,0,0,0,1,0,1,11
+142,12:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+143,04:00.0,Terrier Oriole,NULL,NULL,US Army,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+144,04:00.0,SM-2MR,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+145,04:00.0,SM-2MR,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+146,04:00.0,SM-3-IB,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+147,00:00.0,Orion,NULL,Orion,Lockheed Martin Commercial Launch Services,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+148,05:00.0,Delta 4 Heavy,SLC-37B,EFT-1 (Orion),NASA,Testing,Elliptical High Earth,Successful,1,1,1,0,1,1,1,2
+149,12:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+150,19:00.0,Atlas 5-541,SLC-3E,NROL 35,US National Reconnaissance Office,Classified,Molniya,Operational,1,1,1,0,0,1,1,23
+151,36:00.0,Taurion,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+152,04:00.0,Improved Orion,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+153,47:10.0,Falcon 9 v1.1,SLC-40,Dragon CRS-5,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+154,04:00.0,Atlas 5-551,SLC-41,MUOS 3,US Navy,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+155,07:00.0,Terrier Imp Malemute,LC-1,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+156,07:00.0,Terrier Improved Orion,LC-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+157,50:00.0,Terrier Imp Malemute,LC-3,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+158,50:00.0,Terrier Improved Orion,LC-5,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+159,48:00.0,Oriole IV,LC-4,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+160,22:00.0,Delta 2-7320,SLC-2W,SMAP,NASA,Earth Observation,Low Earth,Operational,1,1,1,0,0,1,1,23
+161,00:00.0,Dragon,NULL,CRS-5,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+162,03:32.0,Falcon 9 v1.1,SLC-40,DSCOVR,SpaceX,Earth Observation,Elliptical High Earth,Operational,1,1,1,0,0,1,1,2
+163,36:00.0,Terrier Oriole,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+164,36:00.0,Terrier Oriole,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+165,36:00.0,Terrier Oriole,LA-1,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+166,28:00.0,Black Brant IX,LC-36,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+167,50:00.0,Falcon 9 v1.1,SLC-40,Eutelsat 115WB/ABS 3A,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+168,44:00.0,Atlas 5-421,SLC-41,MMS,NASA,Earth Observation,Elliptical High Earth,Operational,1,1,1,0,0,1,1,2
+169,33:00.0,Minuteman 3,LF-10,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+170,36:00.0,"Delta 4M+(4,2)",SLC-37B,GPS 2F-9,US Air Force,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+171,48:00.0,Minuteman 3,LF-04,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+172,10:41.0,Falcon 9 v1.1,SLC-40,Dragon CRS-6,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+173,02:00.0,Terrier Imp Malemute,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+174,03:00.0,Falcon 9 v1.1,SLC-40,TurkmenAlem 52E,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+175,52:00.0,New Shepard,NULL,NULL,Blue Origin,NULL,NULL,Successful,0,0,0,0,1,0,1,NULL
+176,24:00.0,Black Brant IX,LC-36,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+177,57:00.0,Dragon V2,SLC-40,NULL,SpaceX,NULL,NULL,Successful,0,0,0,0,0,0,1,2
+178,33:00.0,Minuteman 3,LF-09,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+179,05:00.0,Atlas 5-501,SLC-41,X-37B OTV-4,US Air Force,Technology,Low Earth,Operational,1,1,1,0,0,1,1,2
+180,00:00.0,Dragon,NULL,CRS-6,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+181,12:00.0,Black Brant IX,LC-36,NULL,NASA,NULL,NULL,Failure,0,0,0,0,0,0,1,24
+182,36:00.0,LDSD,NULL,NULL,Jet Propulsion Lab,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+183,04:00.0,Terrier Mk 12 Imp Orion,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+184,21:11.0,Falcon 9 v1.1,SLC-40,Dragon CRS-7,SpaceX,ISS Delivery,NULL,Failure,1,1,1,0,1,1,1,2
+185,19:00.0,Black Brant IX,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+186,36:00.0,Atlas 5-401,SLC-41,GPS 2F-10,US Air Force,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+187,07:00.0,"Delta 4M+(5,4)",SLC-37B,WGS 7,US Air Force,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+188,24:00.0,Lance,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+189,38:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+190,14:00.0,SM-2-IV,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+191,14:00.0,Lance,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+192,28:00.0,SM-2-IV,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+193,40:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+194,04:00.0,Terrier Imp Malemute,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+195,04:00.0,Minuteman 3,LF-10,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+196,45:00.0,Black Brant IX,LC-36,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+197,18:00.0,Atlas 5-551,SLC-41,MUOS 4,US Navy,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+198,02:00.0,Black Brant IX,LC-36,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+199,28:00.0,Atlas 5-421,SLC-41,Morelos 3,United Launch Alliance,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+200,00:00.0,eMRBM,NULL,NULL,Missile Defense Agency,NULL,NULL,Failure,0,0,0,0,0,0,1,17
+201,02:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+202,49:00.0,Atlas 5-401,SLC-3E,NROL 55,US National Reconnaissance Office,Classified,Low Earth,Operational,1,1,1,0,0,1,1,23
+203,43:00.0,Minuteman 3,LF-04,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+204,07:00.0,SRALT,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,17
+205,07:00.0,eMRBM,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,17
+206,13:00.0,Atlas 5-401,SLC-41,GPS 2F-11,US Air Force,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+207,45:00.0,Super Strypi,LP-41,HaikaSat/Cubesats,Operationally Responsive Space Office,Technology,NULL,Failure,1,1,1,0,0,1,0,13
+208,07:00.0,SpaceLoft XL,NULL,NULL,UP Aerospace,NULL,NULL,Successful,0,0,0,0,0,0,1,19
+209,55:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+210,55:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+211,16:00.0,New Shepard,NULL,NULL,Blue Origin,NULL,NULL,Successful,0,0,0,0,1,0,1,NULL
+212,19:00.0,Black Brant IX,LC-36,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+213,00:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+214,44:57.0,Atlas 5-401,SLC-41,Cygnus/CRS-4,United Launch Alliance,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+215,00:00.0,IRBM-T1,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+216,00:00.0,SM-3-IB,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+217,55:00.0,Juno,LC-96,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,19
+218,57:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+219,29:00.0,Falcon 9 v1.2,SLC-40,Orbcomm OG2,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,2
+220,00:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+221,00:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+222,00:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+223,00:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+224,00:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+225,01:00.0,Falcon 9 v1.1,SLC-4E,Jason 3,SpaceX,Earth Observation,Low Earth,Operational,1,1,1,1,0,1,1,23
+226,57:00.0,New Shepard,NULL,NULL,Blue Origin,NULL,NULL,Successful,0,0,0,0,1,0,1,NULL
+227,50:00.0,Ground Based Interceptor,LF-23,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+228,38:00.0,Atlas 5-401,SLC-41,GPS 2F-12,US Air Force,Navigation,Medium Earth,Operational,1,1,1,1,0,1,1,2
+229,40:32.0,"Delta 4M+(5,2)",SLC-6,NROL-45,US National Reconnaissance Office,Classified,Retrograde LEO,Operational,1,1,1,1,0,1,1,23
+230,40:00.0,Minuteman 3,LF-09,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+231,19:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+232,46:00.0,Falcon 9,NULL,SES 0,NULL,NULL,NULL,NULL,0,0,0,1,0,0,0,2
+233,57:00.0,Minuteman 3,LF-10,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+234,52:00.0,Terrier Imp Malemute,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+235,35:00.0,Falcon 9 v1.2,SLC-40,SES 9,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+236,00:00.0,Terrier Improved Orion,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+237,00:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+238,00:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+239,00:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+240,05:52.0,Atlas 5-401,SLC-41,Cygnus OA-6,United Launch Alliance,ISS Delivery,Low Earth,Successful,1,1,1,1,1,1,1,2
+241,21:00.0,New Shepard,NULL,NULL,Blue Origin,NULL,NULL,Successful,0,0,0,0,1,0,1,NULL
+242,43:31.0,Falcon 9 v1.2,SLC-40,Dragon/CRS 8,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,1,1,1,1,2
+243,21:00.0,Falcon 9 v1.2,SLC-40,JCSat 14,SpaceX,Communications,Geosynchronous,Operational,1,1,1,1,1,1,1,2
+244,30:00.0,Dragon,NULL,CRS 8,SpaceX,Re-entry,NULL,NULL,0,0,0,1,1,0,0,NULL
+245,57:00.0,MRBM Target,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+246,00:00.0,SM-3-IB,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+247,00:00.0,SM-3-IB,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+248,40:00.0,Falcon 9 v1.2,SLC-40,Thiacom 8,SpaceX,Communications,Geosynchronous,Scrubbed,0,0,0,1,0,0,0,2
+249,39:00.0,Falcon 9 v1.2,SLC-40,Thiacom 8,SpaceX,Communications,Geosynchronous,Operational,1,1,1,1,1,1,1,2
+250,00:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Failure,0,0,0,0,0,0,1,NULL
+251,57:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+252,59:00.0,Delta 4 Heavy,SLC-37B,NROL 37,US National Reconnaissance Office,Classified,NULL,Scrubbed,0,0,0,1,0,0,0,2
+253,51:00.0,Delta 4 Heavy,SLC-37B,NROL 37,US National Reconnaissance Office,Classified,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+254,29:00.0,Falcon 9 v1.2,SLC-40,Eutelsat 117 West B,SpaceX,Communications,Geosynchronous,Operational,1,1,1,1,1,1,1,2
+255,38:00.0,New Shepard,NULL,NULL,Blue Origin,NULL,NULL,Successful,0,0,0,0,1,0,1,NULL
+256,04:00.0,Terrier Improved Orion,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+257,30:00.0,Atlas 5-551,SLC-41,MUOS 5,US Navy,Communications,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+258,45:29.0,Falcon 9 v1.2,SLC-40,Dragon/CRS-9,SpaceX,ISS Delivery,Low Earth,Operational,1,1,1,1,1,1,1,2
+259,28:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+260,37:00.0,Atlas 5-421,SLC-41,NROL-61,US National Reconnaissance Office,Classified,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+261,26:00.0,Falcon 9 v1.2,SLC-40,JCSat 16,SpaceX,Communications,Geosynchronous,Operational,1,1,1,1,1,1,1,2
+262,31:00.0,Terrier Imp Malemute,LA-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+263,52:00.0,"Delta 4M+(4,2)",SLC-37B,GSSAP 3/4 (AFSPC 6),US Air Force,Space Awareness,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+264,30:00.0,Dragon,NULL,CRS 9,SpaceX,Re-entry,NULL,NULL,0,0,0,1,1,0,0,NULL
+265,00:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+266,00:00.0,Falcon 9 v1.2,SLC-40,AMOS 6,SpaceX,Communications,NULL,Failure,1,1,0,0,0,0,1,2
+267,00:00.0,Falcon 9 v1.2,SLC-40,AMOS 6,SpaceX,Communications,Geosynchronous,Scrubbed,0,0,0,0,0,1,0,2
+268,07:00.0,Minuteman 3,LF-04,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+269,57:00.0,Spaceship Two,NULL,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+270,05:00.0,Atlas 5-411,SLC-41,OSIRIS-REx,NASA,Space Awareness,Heliocentric,Operational,1,1,1,1,0,1,1,2
+271,36:00.0,New Shepard,NULL,NULL,Blue Origin,NULL,NULL,Successful,0,0,0,0,1,0,1,NULL
+272,45:00.0,Antares 230,LP-0A,Cygnus/OA 5,Orbital Sciences Corp,ISS Delivery,Low Earth,Successful,1,1,1,1,1,1,1,9
+273,26:00.0,Spaceship Two,NULL,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+274,26:00.0,Spaceship Two,NULL,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+275,30:33.0,Atlas 5-401,SLC-3E,WorldView 4,DigitalGlobe,Earth Observation,Low Earth,Operational,1,1,1,1,1,1,0,23
+276,42:00.0,Atlas 5-541,SLC-41,GOES-R,NASA,Weather Forecasting,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+277,04:00.0,Spaceship Two,NULL,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+278,36:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+279,53:00.0,"Delta 4M+(5,4)",SLC-37B,WGS 8,US Air Force,Communications,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+280,00:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+281,00:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+282,19:00.0,Pathfinder Zombie,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+283,37:21.0,Pegasus XL,L-1011,CYGNSS,NASA,Weather Forecasting,Low Earth,Operational,0,0,0,1,0,1,1,2
+284,13:00.0,Atlas 5-431,SLC-41,EchoStar 19,Lockheed Martin Commercial Launch Services,Communications,Geosynchronous,Operational,1,1,1,1,1,1,1,2
+285,04:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+286,18:00.0,Falcon 9 v1.2,SLC-4E,Iridium NEXT 102,SpaceX,Communications,Low Earth,Operational,1,1,1,1,1,1,1,23
+287,42:00.0,Atlas 5-401,SLC-41,SBIRS GEO 3,US Air Force,Missile Detection,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+288,40:00.0,Black Brant IX,LC-3,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+289,38:00.0,SM-3-IIA,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+290,40:00.0,Minuteman 3,LF-10,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+291,31:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+292,24:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+293,00:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+294,00:00.0,Trident D-5,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+295,58:00.0,Falcon 9 v1.2,LC-39A,CRS-10,SpaceX,ISS Delivery,Low Earth,Scrubbed,0,0,0,1,0,0,0,8
+296,39:00.0,Falcon 9 v1.2,LC-39A,CRS-10,SpaceX,ISS Delivery,Low Earth,Successful,1,0,1,1,1,1,1,8
+297,19:00.0,Black Brant IX,LC-1,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+298,14:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+299,45:00.0,Black Brant IX,LC-3,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+300,45:00.0,Black Brant IX,LC-4,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+301,49:51.0,Atlas 5-401,SLC-3E,Intruder 12A,US National Reconnaissance Office,Classified,Low Earth,Operational,1,1,1,1,0,1,1,23
+302,55:00.0,Black Brant IX,LC-2,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+303,29:00.0,Falcon 9 v1.2,LC-39A,EchoStar 23,SpaceX,Communications,Geosynchronous,Scrubbed,0,0,0,1,0,0,0,8
+304,00:00.0,Falcon 9 v1.2,LC-39A,EchoStar 23,SpaceX,Communications,Geosynchronous,Operational,1,0,1,1,1,1,1,8
+305,44:00.0,"Delta 4M+(5,4)",SLC-37B,WGS 9,US Air Force,Communications,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+306,30:00.0,Dragon,NULL,CRS 10,SpaceX,Re-entry,NULL,NULL,0,0,0,1,1,0,0,2
+307,27:00.0,Falcon 9 v1.2,LC-39A,SES 10,SpaceX,Communications,Geosynchronous,Operational,1,0,1,1,1,1,1,8
+308,11:26.0,Atlas 5-401,SLC-41,Cygnus OA-7,United Launch Alliance,ISS Delivery,Low Earth,Operational,1,1,1,1,1,1,1,2
+309,57:00.0,Minuteman 3,LF-09,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+310,55:00.0,Falcon 9 v1.2,LC-39A,NROL 76,SpaceX,Classified,NULL,Scrubbed,0,0,0,1,0,0,0,8
+311,31:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+312,15:00.0,Falcon 9 v1.2,LC-39A,NROL 76,SpaceX,Reconnaissance,Low Earth,Operational,1,0,1,1,1,1,1,8
+313,57:00.0,Minuteman 3,LF-04,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+314,28:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+315,50:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+316,21:00.0,Falcon 9 v1.2,LC-39A,Inmarsat 5 F4,SpaceX,Communications,Geosynchronous,Operational,1,0,1,1,1,1,1,8
+317,26:00.0,Ground Based Interceptor,LF-23,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+318,00:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+319,47:00.0,Falcon 9 v1.2,LC-39A,Dragon 6/CRS-11,SpaceX,ISS Delivery,Low Earth,Scrubbed,0,0,0,1,0,0,0,8
+320,07:38.0,Falcon 9 v1.2,LC-39A,Dragon 6/CRS-11,SpaceX,ISS Delivery,Low Earth,Operational,1,0,1,1,1,1,1,8
+321,50:00.0,Sabre Zombie,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+322,16:00.0,SM-3-IIA,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+323,36:00.0,Terrier Improved Orion,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+324,10:00.0,Falcon 9 v1.2,LC-39A,BulgariaSat 1,SpaceX,Communications,Geosynchronous,Operational,1,0,1,1,1,1,1,8
+325,25:14.0,Falcon 9 v1.2,SLC-4E,Iridium NEXT 113,SpaceX,Communications,Low Earth,Operational,1,1,1,1,1,1,1,23
+326,16:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+327,24:00.0,Terrier Imp Malemute,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+328,15:00.0,Ariane 5,SLC-4E,NULL,NULL,Communications,NULL,NULL,0,0,1,0,0,0,0,23
+329,00:00.0,Falcon 9 v1.2,LC-39A,Intelsat 35e,SpaceX,Communications,Geosynchronous,Scrubbed,0,0,0,1,0,0,0,8
+330,00:00.0,Falcon 9 v1.2,LC-39A,Intelsat 35e,SpaceX,Communications,Geosynchronous,Scrubbed,0,0,0,1,0,0,0,8
+331,50:00.0,Dragon,NULL,CRS 11,SpaceX,Re-entry,NULL,NULL,0,0,0,1,1,0,0,NULL
+332,38:00.0,Falcon 9 v1.2,LC-39A,Intelsat 35e,SpaceX,Communications,Geosynchronous,Operational,1,0,1,1,1,1,1,8
+333,00:00.0,THAAD,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,14
+334,00:00.0,eMRBM,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+335,00:00.0,THAAD,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,14
+336,07:00.0,Minuteman 3,LF-10,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+337,00:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+338,36:00.0,Terrier Imp Malemute,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+339,31:37.0,Falcon 9 v1.2,LC-39A,CRS-12,SpaceX,ISS Delivery,Low Earth,Operational,1,0,1,1,1,1,1,8
+340,29:00.0,Atlas 5-401,SLC-41,TDRS-M,NASA,Communications,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+341,51:00.0,Falcon 9 v1.2,SLC-4E,Formosat 5,SpaceX,Earth Observation,Low Earth,Operational,1,1,1,1,1,1,1,23
+342,04:00.0,Minotaur 4,SLC-46,ORS 5,Operationally Responsive Space Office,Space Awareness,Low Earth,Operational,1,1,1,1,1,1,1,2
+343,00:00.0,MRBM-T3,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+344,00:00.0,SM-6,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+345,00:00.0,Falcon 9 v1.2,LC-39A,OTV-5 (X-37B),SpaceX,Testing,Low Earth,Operational,1,0,1,0,0,1,1,8
+346,55:00.0,Dragon,NULL,CRS-12,SpaceX,Re-entry,NULL,NULL,0,0,0,1,1,0,0,NULL
+347,49:47.0,Atlas 5-541,SLC-3E,NROL 42,US National Reconnaissance Office,Reconnaissance,Elliptical High Earth,Operational,1,1,1,1,0,1,1,23
+348,48:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+349,00:00.0,Atlas 5-421,SLC-41,NROL 52,US National Reconnaissance Office,Classified,Geosynchronous,Scrubbed,0,0,0,1,0,0,0,2
+350,00:00.0,Atlas 5-421,SLC-41,NROL 52,US National Reconnaissance Office,Classified,Geosynchronous,Scrubbed,0,0,0,1,0,0,0,2
+351,59:00.0,Atlas 5-421,SLC-41,NROL 52,US National Reconnaissance Office,Classified,Geosynchronous,Scrubbed,0,0,0,1,0,0,0,2
+352,37:01.0,Falcon 9 v1.2,SLC-4E,Iridium NEXT 3,SpaceX,Communications,Low Earth,Operational,1,1,1,1,1,1,1,23
+353,53:00.0,Falcon 9 v1.2,LC-39A,EchoStar 105/SES 11,SpaceX,Communications,Geosynchronous,Operational,1,0,1,1,1,1,1,8
+354,31:00.0,Atlas 5-421,SLC-41,NROL 52,US National Reconnaissance Office,Classified,Geosynchronous,Scrubbed,0,0,0,1,0,0,0,2
+355,28:00.0,Atlas 5-421,SLC-41,NROL 52,US National Reconnaissance Office,Classified,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+356,04:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+357,57:00.0,STARS,LC-42,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+358,34:00.0,Falcon 9 v1.2,LC-39A,Koreasat 5A,SpaceX,Communications,Geosynchronous,Operational,1,0,1,1,1,1,1,8
+359,37:00.0,Minotaur-C 3210,SLC-576E,SkySat 8,Orbital Sciences Corp,Earth Observation,Low Earth,Operational,1,1,1,1,1,1,1,23
+360,30:00.0,Antares 230,LP-0A,Cygnus OA-8,Orbital Sciences Corp,ISS Delivery,Low Earth,Scrubbed,0,0,0,1,0,0,0,9
+361,19:51.0,Antares 230,LP-0A,Cygnus OA-8,Orbital Sciences Corp,ISS Delivery,Low Earth,Operational,1,1,1,1,1,1,1,9
+362,47:00.0,Delta 2-7920,SLC-2W,JPSS 1,NOAA,Earth Observation,Low Earth,Scrubbed,0,0,0,1,0,0,0,23
+363,47:00.0,Delta 2-7920,SLC-2W,JPSS 1,NOAA,Earth Observation,Low Earth,Scrubbed,0,0,0,1,0,0,0,23
+364,52:00.0,Sabre Zombie,MCG,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,NULL
+365,47:36.0,Delta 2-7920,SLC-2W,JPSS 1,NOAA,Earth Observation,Low Earth,Operational,1,1,1,1,0,1,1,23
+366,47:00.0,Falcon 9 v1.2,SLC-40,Dragon 8.2/CRS-13,SpaceX,ISS Delivery,Low Earth,Scrubbed,0,0,0,1,0,0,0,2
+367,47:00.0,Falcon 9 v1.2,SLC-40,Dragon 8.2/CRS-13,SpaceX,ISS Delivery,Low Earth,Scrubbed,0,0,0,1,0,0,0,2
+368,00:00.0,New Shepard,NULL,Blue Origin Crew Capsule,Blue Origin,NULL,NULL,NULL,0,0,0,0,1,0,1,NULL
+369,47:00.0,Falcon 9 v1.2,SLC-40,Dragon 8.2/CRS-13,SpaceX,ISS Delivery,Low Earth,Scrubbed,0,0,0,1,0,0,0,2
+370,47:00.0,Falcon 9 v1.2,SLC-40,Dragon 8.2/CRS-13,SpaceX,ISS Delivery,Low Earth,Scrubbed,0,0,0,1,0,0,0,2
+371,36:09.0,Falcon 9 v1.2,SLC-40,Dragon 8.2/CRS-13,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,1,1,1,1,2
+372,27:34.0,Falcon 9 v1.2,SLC-4E,Iridium NEXT 116,SpaceX,Communications,Low Earth,Operational,1,1,1,1,1,1,1,23
+373,00:00.0,Falcon 9 v1.2,SLC-40,Zuma,SpaceX,Classified,Low Earth,Successful,1,1,1,0,1,1,1,2
+374,00:00.0,Spaceship Two,MHV-3,NULL,Scaled Composites,NULL,NULL,Successful,0,0,0,0,0,0,1,11
+375,00:00.0,"Delta 4M+(5,2)",SLC-6,NROL 47,US National Reconnaissance Office,Reconnaissance,Low Earth,Scrubbed,0,0,0,1,0,0,0,23
+376,00:00.0,"Delta 4M+(5,2)",SLC-6,NROL 47,US National Reconnaissance Office,Reconnaissance,Low Earth,Scrubbed,0,0,0,1,0,0,0,23
+377,11:00.0,"Delta 4M+(5,2)",SLC-6,NROL 47,US National Reconnaissance Office,Reconnaissance,Retrograde LEO,Operational,1,1,1,1,0,1,1,23
+378,15:00.0,Dragon,NULL,CRS 13,SpaceX,Re-entry,NULL,NULL,0,0,0,1,1,0,0,NULL
+379,48:00.0,Atlas 5-411,SLC-41,SBIRS GEO 4,US Air Force,Missile Detection,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+380,00:00.0,eMRBM,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+381,00:00.0,SM-3-IIA,NULL,NULL,US Navy,NULL,NULL,Failure,0,0,0,0,0,0,1,13
+382,18:00.0,Falcon 9 v1.2,SLC-40,Govsat 1,SpaceX,Communications,Geosynchronous,Scrubbed,0,0,0,1,0,0,0,2
+383,25:00.0,Falcon 9 v1.2,SLC-40,Govsat 1,SpaceX,Communications,Geosynchronous,Operational,1,1,1,1,1,1,1,2
+384,45:00.0,Falcon Heavy,LC-39A,Demo Mission - Tesla,SpaceX,Demonstration,Heliocentric,Successful,1,1,1,1,1,1,1,8
+385,17:00.0,Falcon 9 v1.2,SLC-4E,Paz,SpaceX,Earth Observation,Low Earth,Operational,1,1,1,1,1,1,1,23
+386,02:00.0,Atlas 5-541,SLC-41,GOES S,NASA,Weather Forecasting,Geosynchronous,Operational,1,1,1,1,0,1,1,2
+387,33:00.0,Falcon 9 v1.2,SLC-40,Hispasat 30W-6,SpaceX,Communications,Geosynchronous,Operational,1,1,1,1,1,1,1,2
+388,48:00.0,Terrier Imp Malemute,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+389,13:51.0,Falcon 9 v1.2,SLC-4E,Iridium Next 140,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,23
+390,19:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+391,30:38.0,Falcon 9 v1.2,SLC-40,Dragon CRS-14,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+392,00:00.0,Spaceship Two,MHV-3,NULL,Virgin Galactic,NULL,NULL,NULL,0,0,0,0,1,0,1,11
+393,00:00.0,Lynx,NULL,NULL,Missile Defense Agency,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+394,13:00.0,Atlas 5-551,SLC-41,AFSPC 11,US Air Force,Testing,Geosynchronous,NULL,1,1,1,0,0,0,1,2
+395,51:30.0,Falcon 9 v1.2,SLC-40,TESS,SpaceX,Space Awareness,Elliptical High Earth,Successful,1,1,1,0,0,1,1,2
+396,28:00.0,Minuteman 3,LF-10,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+397,02:00.0,New Shepard,NULL,M8,Blue Origin,NULL,NULL,NULL,0,0,0,0,1,0,1,NULL
+398,00:00.0,Dragon,NULL,CRS 14,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+399,05:00.0,Atlas 5-401,SLC-3E,InSight,NASA,Communications,Heliocentric,Successful,1,1,1,0,0,1,1,23
+400,14:00.0,Falcon 9 v1.2,LC-39A,Bangabandhu 1,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,8
+401,24:00.0,Minuteman 3,LF-04,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+402,44:06.0,Antares 230,LP-0A,Cygnus OA-9,Orbital ATK,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,9
+403,00:00.0,Terrier Malemute,NULL,NULL,Sandia Laboratories,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+404,47:58.0,Falcon 9 v1.2,SLC-4E,Iridium-NEXT 110,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,23
+405,00:00.0,Spaceship Two,NULL,VP01-2,Virgin Galactic,NULL,NULL,NULL,0,0,0,0,1,0,1,11
+406,57:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+407,45:00.0,Falcon 9 v1.2,SLC-40,SES 12,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+408,57:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+409,36:00.0,Terrier Improved Orion,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+410,42:42.0,Falcon 9 v1.2,SLC-40,Dragon CRS 15,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+411,07:00.0,New Shepard,NULL,NULL,Blue Origin,NULL,NULL,NULL,0,0,0,0,1,0,1,NULL
+412,00:00.0,Rocket 1,NULL,NULL,"Astra Space, Inc.",NULL,NULL,Failure,0,0,0,0,1,0,1,14
+413,50:00.0,Falcon 9 v1.2,SLC-40,Telstar 19V,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+414,00:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+415,39:30.0,Falcon 9 v1.2,SLC-4E,Iridium Next 154,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,23
+416,48:00.0,Spaceship Two,NULL,NULL,Virgin Galactic,NULL,NULL,Successful,0,0,0,0,1,0,1,11
+417,31:00.0,Minuteman 3,NULL,NULL,US Air Force,NULL,NULL,Failure,0,0,0,0,0,0,1,23
+418,00:00.0,Dragon,NULL,CRS 15,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+419,18:00.0,Falcon 9 v1.2,SLC-40,Merah Putih,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+420,31:00.0,Delta 4 Heavy,SLC-37B,Parker Solar Probe,NASA,Sun Imaging & Measurements,Heliocentric,Operational,1,1,1,0,0,1,1,2
+421,19:00.0,Terrier Imp Malemute,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+422,14:00.0,SARGE,NULL,Pathfinder 1,Exos Aerospace,NULL,NULL,Successful,0,0,0,0,1,0,1,19
+423,26:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,9
+424,16:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+425,45:00.0,Falcon 9 v1.2,SLC-40,Telstar 18V,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+426,38:00.0,R-UNK,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+427,57:00.0,Delta 2-7420,SLC-2W,ICESat 2,NASA,Earth Observation,Low Earth,Operational,1,1,1,0,0,1,1,23
+428,38:00.0,SpaceLoft XL,NULL,NULL,UP Aerospace,NULL,NULL,Successful,0,0,0,0,0,0,1,19
+429,09:00.0,SpaceLoft XL,NULL,NULL,UP Aerospace,NULL,NULL,Successful,0,0,0,0,0,0,1,19
+430,21:28.0,Falcon 9 v1.2,SLC-4E,SAOCOM 1A,SpaceX,Earth Observation,Low Earth,Operational,1,1,1,0,1,1,1,23
+431,15:00.0,Atlas 5-551,SLC-41,AEHF 4,US Air Force,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+432,00:00.0,R-UNK,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+433,57:00.0,Minuteman 3,NULL,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+434,46:00.0,Falcon 9 v1.2,LC-39A,Eshail 2,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,8
+435,01:31.0,Antares 230,LP-0A,Cygnus NG-10,Orbital Sciences Corp,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,9
+436,00:00.0,Astra Rocket 2,NULL,NULL,"Astra Space, Inc.",NULL,NULL,Failure,0,0,0,0,1,0,1,14
+437,34:05.0,Falcon 9 v1.2,SLC-4E,Spaceflight SSO-A,SpaceX,Satellite Dispenser,Low Earth,Successful,1,1,1,0,1,1,1,23
+438,16:16.0,Falcon 9 v1.2,SLC-40,Dragon CRS-16,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,0,1,2
+439,00:00.0,SM-3-IIA,NULL,NULL,US Navy,NULL,NULL,Successful,0,0,0,0,0,0,1,13
+440,00:00.0,Spaceship Two,NULL,VP03,Virgin Galactic,NULL,NULL,Successful,0,0,0,0,1,0,1,11
+441,40:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,24
+442,51:00.0,Falcon 9 v1.2,SLC-40,GPS-31,SpaceX,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+443,31:33.0,Falcon 9 v1.2,SLC-4E,Iridium-NEXT 167,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,23
+444,00:00.0,Dragon,NULL,CRS 16,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+445,10:00.0,Delta 4 Heavy,SLC-6,KH-11 17,US National Reconnaissance Office,Reconnaissance,Low Earth,Operational,1,1,1,0,0,1,1,23
+446,00:00.0,New Shepard,NULL,P7,Blue Origin,NULL,NULL,Successful,0,0,0,0,1,0,1,NULL
+447,57:00.0,Minuteman 3,NULL,NULL,US Air Force,NULL,NULL,Successful,0,0,0,0,0,0,1,23
+448,00:00.0,Spaceship Two,WK2,VF-01,Virgin Galactic,NULL,Sub-orbital,Successful,0,0,0,0,1,0,1,11
+449,45:00.0,Falcon 9 v1.2,SLC-40,PSN 6,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+450,00:00.0,SARGE,NULL,M1,Exos Aerospace,NULL,Sub-orbital,Successful,0,0,0,0,1,0,1,19
+451,49:03.0,Falcon 9 v1.2,LC-39A,Crew Dragon 1,SpaceX,Testing,Low Earth,Successful,1,1,1,0,0,1,1,8
+452,26:00.0,"Delta 4M+(5,4)",SLC-37B,WGS 10,US Air Force,Communications,Geosynchronous,Operational,1,1,1,0,0,1,1,2
+453,31:00.0,Ground Based Interceptor,LF-23,NULL,US Military,Missile Test,Sub-orbital,Successful,0,0,0,0,0,0,1,23
+454,31:00.0,Ground Based Interceptor,LF-05,NULL,US Military,Missile Test,Sub-orbital,Successful,0,0,0,0,0,0,1,23
+455,48:00.0,Black Brant IX,NULL,NULL,NASA,NULL,Sub-orbital,Successful,0,0,0,0,0,0,1,24
+456,35:00.0,Falcon Heavy,LC-39A,Arabsat 6A,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,8
+457,46:07.0,Antares 230,LP-0A,Cygnus CRS-11,NASA,ISS Delivery,Low Earth,Operational,1,1,1,0,1,1,1,9
+458,00:00.0,Traveler,NULL,NULL,Universit of Southern California,Testing,Sub-orbital,Successful,0,0,0,0,0,0,1,19
+459,00:00.0,Terrier Malemute,NULL,NULL,US Navy,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,13
+460,00:00.0,Terrier Malemute,NULL,NULL,US Navy,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,13
+461,36:00.0,Minuteman 3,LF10,NULL,US Air Force,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,23
+462,00:00.0,New Shepard,NULL,NS4 P8,Blue Origin,NULL,Sub-orbital,Successful,0,0,0,0,1,0,1,NULL
+463,48:58.0,Falcon 9 v1.2,SLC-40,Dragon CRS-17,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+464,00:00.0,Trident D-5,NULL,NULL,US Navy,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,NULL
+465,40:00.0,Minuteman 3,LF-9,NULL,US Air Force,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,23
+466,30:00.0,Falcon 9 v1.2,SLC-40,Starlink 0.9 (60 sat),SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,2
+467,00:00.0,Dragon,NULL,CRS 17,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+468,17:10.0,Falcon 9 v1.2,SLC-4E,Radarsat Constellations 1-3,SpaceX,Earth Observation,Low Earth,Operational,1,1,1,0,1,1,1,23
+469,36:00.0,Terrier Improved Orion,NULL,NULL,NASA,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,9
+470,30:00.0,Falcon Heavy,LC-39A,STP-2,SpaceX,Military Research,Elliptical High Earth,Operational,1,1,1,0,1,0,1,8
+471,00:00.0,SARGE,NULL,M3,Exos Aerospace,NULL,Sub-orbital,Failure,0,0,0,0,1,0,1,19
+472,02:00.0,ATB,SLC-46,NULL,NASA,Testing,Sub-orbital,Successful,0,0,0,0,0,0,1,2
+473,00:00.0,Starship Hopper,NULL,18m Hop,SpaceX,NULL,NULL,NULL,0,0,0,0,1,0,0,21
+474,01:56.0,Falcon 9 v1.2,SLC-40,Dragon CRS-18,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,2
+475,23:00.0,Falcon 9 v1.2,SLC-40,AMOS 17,SpaceX,Communications,Geosynchronous,Operational,1,1,1,0,1,1,1,2
+476,13:00.0,Atlas 5-551,SLC-41,AEHF 5,US Military,Communications,Supersynchronous,Operational,1,1,1,0,0,1,1,2
+477,00:00.0,Black Brant IX,NULL,NULL,NASA,NULL,Sub-orbital,Successful,0,0,0,0,0,0,1,24
+478,50:00.0,Terrier Imp Malemute,NULL,NULL,NASA,NULL,Sub-orbital,Successful,0,0,0,0,0,0,1,9
+479,06:00.0,"Delta 4M+(4,2)",SLC-37B,GPS 3-2,US Military,Navigation,Medium Earth,Operational,1,1,1,0,0,1,1,2
+480,00:00.0,Starship Hopper,NULL,150m Hop,SpaceX,NULL,NULL,NULL,0,0,0,0,1,0,0,21
+481,00:00.0,Dragon,NULL,CRS 18,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+482,00:00.0,Trident D-5,NULL,NULL,US Navy,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,NULL
+483,00:00.0,Trident D-5,NULL,NULL,US Navy,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,NULL
+484,00:00.0,Trident D-5,NULL,NULL,US Navy,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,NULL
+485,00:00.0,Trident D-5,NULL,NULL,US Navy,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,NULL
+486,36:00.0,Black Brant IX,NULL,NULL,NASA,NULL,Sub-orbital,Successful,0,0,0,0,0,0,1,9
+487,00:00.0,Black Brant IX,NULL,NULL,NASA,NULL,Sub-orbital,Successful,0,0,0,0,0,0,1,24
+488,09:00.0,Minuteman 3,LF10,NULL,US Navy,Military Research,Sub-orbital,Successful,0,0,0,0,0,0,1,23
+489,52:00.0,Black Brant IX,NULL,NULL,NASA,NULL,Sub-orbital,Successful,0,0,0,0,0,0,1,24
+490,59:00.0,Pegasus XL,L-1011,ICON,NASA,Earth Observation,Low Earth,Operational,1,1,1,0,0,1,1,2
+491,00:00.0,Terrier Imp Malemute,NULL,NULL,NASA,NULL,Sub-orbital,Successful,0,0,0,0,0,0,1,9
+492,00:00.0,SARGE,NULL,M4,Exos Aerospace,NULL,NULL,Failure,0,0,0,0,1,0,1,19
+493,33:00.0,Black Brant IX,NULL,NULL,NASA,NULL,Sub-orbital,Successful,0,0,0,0,0,0,1,24
+494,59:47.0,Antares 230+,LP-0A,Cygnus CRS-12,Northrop Grumman,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,1,9
+495,56:00.0,Falcon 9 v1.2,SLC-40,Starlink 1.0 F1,SpaceX,Communications,Low Earth,Successful,1,1,1,0,0,0,1,2
+496,21:00.0,SpaceLoft XL,NULL,NULL,UP Aerospace,NULL,Sub-orbital,Successful,0,0,0,0,0,0,1,19
+497,29:24.0,Falcon 9 v1.2,SLC-40,Dragon CRS-19,SpaceX,ISS Delivery,Low Earth,Operational,1,1,1,0,1,1,1,2
+498,00:00.0,New Shepard,NULL,NS4 P9,Blue Origin,NULL,NULL,Successful,0,0,0,0,1,0,1,NULL
+499,10:00.0,Falcon 9 v1.2,SLC-40,JCSat 18/Kacific 1,SpaceX,Communications,Geosynchronous,Successful,1,1,1,0,1,0,1,2
+500,36:43.0,Atlas 5-N22,SLC-41,Starliner 1 (CST-100 OFT),Boeing,ISS Delivery,Low Earth,Successful,1,1,1,0,0,1,1,2
+501,19:21.0,Falcon 9 v1.2,SLC-40,Starlink 1 F2,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,2
+502,59:59.0,Dragon,NULL,CRS 19,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+503,00:00.0,Falcon 9 v1.2,LC-39A,Crew Dragon/In-Flight Abort,SpaceX,NULL,NULL,Successful,0,0,0,0,1,0,1,8
+504,40:00.0,Black Brant IX,NULL,NULL,NASA,NULL,NULL,Successful,0,0,0,0,0,0,1,15
+505,06:49.0,Falcon 9 v1.2,SLC-40,Starlink 1 F3,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,1,2
+506,38:00.0,Minuteman 3,NULL,NULL,US Air Force,Military Research,NULL,Successful,0,0,0,0,0,0,1,23
+507,03:00.0,Atlas 5-411,SLC-41,Solar Orbiter,NASA,Sun Imaging & Measurements,Heliocentric,NULL,1,1,1,0,0,1,0,2
+508,21:04.0,Antares 230+,LP-0A,Cygnus CRS-13,Northrop Grumman,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,0,9
+509,05:55.0,Falcon 9 v1.2,SLC-40,Starlink 1 F4,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,0,2
+510,50:31.0,Falcon 9 v1.2,SLC-40,Dragon CRS-20,SpaceX,ISS Delivery,Low Earth,Successful,1,1,1,0,1,1,0,2
+511,16:39.0,Falcon 9 v1.2,LC-39A,Starlink 1 F5,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,0,8
+512,18:00.0,Atlas 5-551,SLC-41,AEHF 6,US Military,Communications,Supersynchronous,NULL,1,1,1,0,0,1,0,2
+513,00:00.0,Dragon,NULL,CRS 20,SpaceX,Re-entry,NULL,NULL,0,0,0,0,1,0,0,NULL
+514,30:30.0,Falcon 9 v1.2,LC-39A,Starlink 1 F6,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,0,8
+515,14:00.0,Atlas 5-501,SLC-41,USSF 7 (X37B OTV6),US Military,Testing,Low Earth,Operational,1,1,1,0,0,1,0,2
+516,50:00.0,LauncherOne,NULL,Starshine 4/Flight 1,Virgin Orbit,Testing,Low Earth,Failure,0,1,1,0,1,1,0,11
+517,22:45.0,Falcon 9 v1.2,LC-39A,DM-2/Crew Dragon 2,SpaceX,Testing,Low Earth,Operational,1,1,1,0,0,1,0,8
+518,25:33.0,Falcon 9 v1.2,SLC-40,Starlink 1 F7,SpaceX,Communications,Low Earth,Operational,1,1,1,0,1,1,0,2

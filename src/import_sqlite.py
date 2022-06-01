@@ -17,7 +17,7 @@ def import_notams_table (conn,  file_name):
     #     print(f)
     try:
         # real NOTAM is having issue in reading encoding
-        df = pd.read_csv(file_name, encoding_errors='ignore')
+        df = pd.read_csv(file_name, encoding ='utf-8')
         df.to_sql('notams', conn, if_exists='replace', index = False)
     except:
         print(format_exc())
@@ -37,8 +37,8 @@ def import_svo_data():
     file = Path(svo_db)
     file.touch(exist_ok=True)
     conn = sqlite3.connect(svo_db)
-    #import_launches_table(conn, '../data/launches.csv')
-    #import_spaceports_table(conn, '../data/spaceports.csv')
+    import_launches_table(conn, '../data/launches.csv')
+    import_spaceports_table(conn, '../data/spaceports.csv')
     import_notams_table(conn, '../data/notams.csv')
     conn.close()
 

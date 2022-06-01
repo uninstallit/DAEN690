@@ -39,11 +39,11 @@ def import_svo_data():
     conn = sqlite3.connect(svo_db)
     import_launches_table(conn, '../data/launches.csv')
     import_spaceports_table(conn, '../data/spaceports.csv')
-    import_notams_table(conn, '../data/notams.csv')
+    import_notams_table(conn, '../data/notams_v3.csv')
     conn.close()
 
-import_sample_data()
-#import_svo_data()
+#import_sample_data()
+import_svo_data()
 
 
 

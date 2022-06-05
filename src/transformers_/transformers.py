@@ -15,6 +15,8 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(parent)
 
+from libs.PyNotam.notam import Notam
+
 
 class SplitAlphaNumericTransformer(BaseEstimator, TransformerMixin):
     def __init__(self):

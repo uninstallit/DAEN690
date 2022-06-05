@@ -1,12 +1,19 @@
 import re
 import string
 import pandas as pd
+from datetime import datetime
 from sklearn.base import BaseEstimator, TransformerMixin
 
 import sys
+import os
 
-sys.path.insert(0, "./")
-from libs.PyNotam.notam import Notam
+current = os.path.dirname(os.path.realpath(__file__))
+
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+root = os.path.dirname(parent)
+sys.path.append(parent)
 
 
 class SplitAlphaNumericTransformer(BaseEstimator, TransformerMixin):
@@ -107,3 +114,23 @@ class SeriesToDataframeTransformer(BaseEstimator, TransformerMixin):
 
     def transform(self, x, y=None):
         return x.to_frame()
+
+
+class NotamDateToUNixTimeTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, x, y=None):
+        series_name = x.name
+        date_format = "%Y-%m-%d %H:%M:%S"
+        # parse str date
+        _x = [
+            datetime.strptime(date_time_str, date_format)
+            for date_time_str in x.tolist()
+        ]
+        # convert to unix time
+        _x = [datetime.timestamp(date_time_obj) for date_time_obj in _x]
+        return pd.Series(_x, name=series_name)

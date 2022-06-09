@@ -1,4 +1,4 @@
-ICAO_abbr = {
+ICAO_faa_7340_2K_abbr= {
 'AC':'assistant chief',
 'ACA':'artic control area',
 'ACARS':'Aircraft communication addressing and reporting system',

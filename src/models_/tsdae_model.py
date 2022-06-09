@@ -11,7 +11,7 @@ import nltk
 
 def main():
 
-    conn = sqlite3.Connection("./data/svo_db_20200901.db")
+    conn = sqlite3.Connection("./data/svo_db_20201027.db")
     cursor = conn.cursor()
 
     # model_name = "bert-base-uncased"

@@ -35,7 +35,7 @@ from pipelines_.pipelines import clean_column_text_pipeline
 
 def main():
 
-    conn = sqlite3.Connection("./data/svo_db_20200901.db")
+    conn = sqlite3.Connection("./data/svo_db_20201027.db")
     cursor = conn.cursor()
 
     sql = """ SELECT "TEXT" FROM notams"""

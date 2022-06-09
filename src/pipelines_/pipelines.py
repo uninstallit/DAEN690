@@ -21,7 +21,7 @@ from transformers_.transformers import (
     DecodeAbbrevTransformer,
     JoinStrListTransformer,
     SeriesToDataframeTransformer,
-    NotamDateToUNixTimeTransformer,
+    NotamDateToUnixTimeTransformer,
 )
 
 
@@ -38,7 +38,7 @@ clean_text_pipeline = Pipeline(
 
 conv_notam_date_pipeline = Pipeline(
     [
-        ("to_unix_time", NotamDateToUNixTimeTransformer()),
+        ("to_unix_time", NotamDateToUnixTimeTransformer()),
         ("to_dataframe", SeriesToDataframeTransformer()),
     ]
 )

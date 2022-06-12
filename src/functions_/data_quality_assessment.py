@@ -103,7 +103,8 @@ def inspect_notams_polygons_tables(cursor):
             count_notam_with_no_polygons +=1
             notam_with_no_polygons.append(notam)
 
-    print(f'Found count_notam_with_no_polygons: {count_notam_with_no_polygons},e.i. {notam_with_no_polygons[0], notam_with_no_polygons[1]} ')
+    print(f'Found count_notam_with_no_polygons: {count_notam_with_no_polygons}')
+    print(f'Notam_rec_id with no polygons: {notam_with_no_polygons[0:200]} ')
     
 def inspect_polygons_vertices_tables(cursor):
     print('\nInspect_polygons_vertices')

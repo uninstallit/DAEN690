@@ -121,18 +121,18 @@ def import_svo_data():
     file = Path(svo_db)
     file.touch(exist_ok=True)
     conn = sqlite3.connect(svo_db)
-    import_human_annotation_matching_table(conn, '../../data/HumanAnnotatedMatches_SVO_DB_20200127_pipes_noquotes.csv')
-    import_vertices_table(conn, '../../data/vertices_20201027.csv')
-    import_polygon_table(conn, '../../data/polygon_20201027.csv')
-    import_launches_table(conn, '../../data/launches_20201027.csv')
-    import_spaceports_table(conn, '../../data/spaceports_20201027.csv')
-    import_notams_table(conn, '../../data/notam_20201027_pipes_noquotes.csv')
-    import_artcc_boundary_table(conn, '../../data/artcc_boundary.csv')
-    import_airports_table(conn, '../../data/airports.csv')
+    # import_human_annotation_matching_table(conn, '../../data/HumanAnnotatedMatches_SVO_DB_20200127_pipes_noquotes.csv')
+    # import_vertices_table(conn, '../../data/vertices_20201027.csv')
+    # import_polygon_table(conn, '../../data/polygon_20201027.csv')
+    # import_launches_table(conn, '../../data/launches_20201027.csv')
+    # import_spaceports_table(conn, '../../data/spaceports_20201027.csv')
+    # import_notams_table(conn, '../../data/notam_20201027_pipes_noquotes.csv')
+    import_artcc_boundary_table(conn, '../../data/external_artcc_boundary.csv')
+    import_airports_table(conn, '../../data/external_airports.csv')
     conn.close()
 
 def main():
-    import_sample_data()
+    #import_sample_data()
     import_svo_data()
 
 if __name__ == "__main__":

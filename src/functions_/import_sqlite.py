@@ -75,7 +75,29 @@ def import_notams_table (conn,  file_name):
         df.to_sql('notams', conn, if_exists='replace', index = False)
     except:
         print(format_exc())
-        
+
+def import_artcc_boundary_table(conn, file_name):
+    try:
+        with open(file_name, 'r') as fn:
+            lines = fn.readlines()
+
+        df = pd.read_csv(file_name, engine="python" )
+        df.to_sql('artcc_boundary', conn, if_exists='replace', index = False)
+        print(f'ARTCC_BOUNDARY {file_name} - original count:{len(lines)}, after process count:{df.shape[0]}. Ignored count: {len(lines)-df.shape[0]-1}')
+    except:
+        print(format_exc())
+
+def import_airports_table(conn, file_name):
+    try:
+        with open(file_name, 'r') as fn:
+            lines = fn.readlines()
+
+        df = pd.read_csv(file_name, engine="python" )
+        df.to_sql('airports', conn, if_exists='replace', index = False)
+        print(f'AIRPORTS {file_name} - original count:{len(lines)}, after process count:{df.shape[0]}. Ignored count: {len(lines)-df.shape[0]-1}')
+    except:
+        print(format_exc())
+
 def import_sample_data():
     dir = '../../sample_data/'
     isExist = os.path.exists(dir)
@@ -105,8 +127,14 @@ def import_svo_data():
     import_launches_table(conn, '../../data/launches_20201027.csv')
     import_spaceports_table(conn, '../../data/spaceports_20201027.csv')
     import_notams_table(conn, '../../data/notam_20201027_pipes_noquotes.csv')
+    import_artcc_boundary_table(conn, '../../data/artcc_boundary.csv')
+    import_airports_table(conn, '../../data/airports.csv')
     conn.close()
 
-# import_sample_data()
-import_svo_data()																																																																																																																							
+def main():
+    import_sample_data()
+    import_svo_data()
+
+if __name__ == "__main__":
+    main()
 

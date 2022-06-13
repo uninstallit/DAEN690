@@ -1,5 +1,3 @@
-import sqlite3
-import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 
@@ -22,19 +20,38 @@ from transformers_.transformers import (
     JoinStrListTransformer,
     SeriesToDataframeTransformer,
     NotamDateToUnixTimeTransformer,
+    DummyEncoderTransformer,
+    CatBoostTransformer,
+    DeltaTimeTransformer,
+    SentenceEmbedderTransformer,
 )
 
 
 clean_text_pipeline = Pipeline(
     [
         ("split_sentns", SplitAlphaNumericTransformer()),
-        ("remove_punkt", RemovePunctuationTransformer()),
         ("remove_digit", RemoveDigitsTransformer()),
         ("decode_abbrev", DecodeAbbrevTransformer()),
+        ("remove_punkt", RemovePunctuationTransformer()),
         ("strjoin_words", JoinStrListTransformer()),
         ("to_dataframe", SeriesToDataframeTransformer()),
     ]
 )
+
+dummy_encoder_pipeline = Pipeline(
+    [
+        ("one_hot", DummyEncoderTransformer()),
+        ("to_dataframe", SeriesToDataframeTransformer()),
+    ]
+)
+
+cat_boost_encoder_pipeline = Pipeline(
+    [
+        ("cat_boost", CatBoostTransformer()),
+        ("to_dataframe", SeriesToDataframeTransformer()),
+    ]
+)
+
 
 conv_notam_date_pipeline = Pipeline(
     [
@@ -44,45 +61,44 @@ conv_notam_date_pipeline = Pipeline(
 )
 
 
-clean_all_notam_columns_pipeline = Pipeline(
+preprocess_pipeline = Pipeline(
     [
         (
-            "clean_up_columns",
+            "columns",
             ColumnTransformer(
                 [
                     (
-                        "clean_text_idx_0",
+                        "text_idx_0",
                         clean_text_pipeline,
                         "TEXT",
                     ),
                     (
-                        "clean_simple_text_idx_1",
-                        clean_text_pipeline,
-                        "SIMPLE_TEXT",
-                    ),
-                    (
-                        "poss_start_timestamp_idx_2",
+                        "poss_start_timestamp_idx_1",
                         conv_notam_date_pipeline,
                         "POSSIBLE_START_DATE",
                     ),
                     (
-                        "poss_end_timestamp_idx_3",
-                        conv_notam_date_pipeline,
-                        "POSSIBLE_END_DATE",
-                    ),
-                    (
-                        "issue_timestamp_idx_4",
+                        "issue_timestamp_idx_2",
                         conv_notam_date_pipeline,
                         "ISSUE_DATE",
                     ),
                     (
-                        "canceled_timestamp_idx_5",
-                        conv_notam_date_pipeline,
-                        "CANCELED_DATE",
+                        "location_code_idx_3",
+                        cat_boost_encoder_pipeline,
+                        "LOCATION_CODE",
                     ),
                 ]
             ),
-        )
+        ),
+    ]
+)
+
+
+features_pipeline = Pipeline(
+    [
+        ("preprocess", preprocess_pipeline),
+        ("add_delta_time_feature_idx_4", DeltaTimeTransformer()),
+        ("add_text_embedder_feature_idx_5", SentenceEmbedderTransformer()),
     ]
 )
 
@@ -91,7 +107,7 @@ def clean_column_text_pipeline(column_name):
     pipeline = Pipeline(
         [
             (
-                "clean_up_columns",
+                "process_columns",
                 ColumnTransformer(
                     [
                         (
@@ -111,7 +127,7 @@ def conv_column_date_pipeline(column_name):
     pipeline = Pipeline(
         [
             (
-                "clean_up_columns",
+                "process_columns",
                 ColumnTransformer(
                     [
                         (
@@ -127,24 +143,48 @@ def conv_column_date_pipeline(column_name):
     return pipeline
 
 
+def dummy_encode_ordinal_pipeline(column_name):
+    pipeline = Pipeline(
+        [
+            (
+                "process_columns",
+                ColumnTransformer(
+                    [
+                        (
+                            "dummy_encode",
+                            dummy_encoder_pipeline,
+                            column_name,
+                        )
+                    ]
+                ),
+            )
+        ]
+    )
+    return pipeline
+
+
+def cat_boost_encode_pipeline(column_name):
+    pipeline = Pipeline(
+        [
+            (
+                "process_columns",
+                ColumnTransformer(
+                    [
+                        (
+                            "cat_boost_encode",
+                            cat_boost_encoder_pipeline,
+                            column_name,
+                        )
+                    ]
+                ),
+            )
+        ]
+    )
+    return pipeline
+
+
 def main():
-
-    # example
-
-    conn = sqlite3.Connection("./data/svo_db_20201027.db")
-    sql = """ SELECT issueTime, startTime, stopTime FROM human_matches"""
-    df = pd.read_sql_query(sql, conn)
-
-    column = "IssueTime"
-    df = df[column].to_frame()
-    df = df.dropna()
-    print(df.head())
-
-    conn.close()
-
-    result = conv_column_date_pipeline(column).fit_transform(df)
-    print(result)
-    print(type(result))
+    pass
 
 
 if __name__ == "__main__":

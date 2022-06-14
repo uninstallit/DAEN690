@@ -6,6 +6,8 @@ import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
+# source: https://keras.io/examples/vision/siamese_network/
+
 
 class SiameseModel(tf.keras.Model):
     """The Siamese Network model with a custom training and testing loops.

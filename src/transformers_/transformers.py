@@ -5,7 +5,8 @@ import numpy as np
 import category_encoders as ce
 from datetime import datetime
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.impute import SimpleImputer
 from sentence_transformers import SentenceTransformer
 
 import sys
@@ -133,8 +134,11 @@ class NotamDateToUnixTimeTransformer(BaseEstimator, TransformerMixin):
         series_name = x.name
         date_format = "%Y-%m-%d %H:%M:%S"
         # parse str date
+
         _x = [
             datetime.strptime(date_time_str, date_format)
+            if date_time_str != None
+            else datetime.strptime(x.value_counts().idxmax(), date_format)
             for date_time_str in x.tolist()
         ]
         # convert to unix time
@@ -172,6 +176,20 @@ class CatBoostTransformer(BaseEstimator, TransformerMixin):
         return pd.Series(_x, name=series_name)
 
 
+class LabelTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, x, y=None):
+        series_name = x.name
+        label_encoder = LabelEncoder()
+        _x = label_encoder.fit_transform(x)
+        return pd.Series(_x, name=series_name)
+
+
 class DeltaTimeTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, column_indexes=None):
         self.column_indexes = column_indexes
@@ -201,3 +219,17 @@ class SentenceEmbedderTransformer(BaseEstimator, TransformerMixin):
         _x = np.expand_dims(_x, -1)
         x = np.hstack((x, _x))
         return x
+
+
+class MostFrequenInputerTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, x, y=None):
+        series_name = x.name
+        inputer = SimpleImputer(strategy="most_frequent")
+        _x = inputer.fit_transform(x)
+        return pd.Series(_x, name=series_name).to_frame()

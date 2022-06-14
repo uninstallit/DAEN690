@@ -1,4 +1,4 @@
-import sqlite3
+import copy
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -17,7 +17,7 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(root)
 
-from functions_.functions import get_triplet_index_dict
+from functions_.functions import get_triplet_index_dict, get_notams_data
 
 
 class SiameseModel(tf.keras.Model):
@@ -77,7 +77,7 @@ class DistanceLayer(tf.keras.layers.Layer):
         return (ap_distance, an_distance)
 
 
-def get_base_network(input_shape):
+def get_base_embeddings_network(input_shape):
     embedding_inputs = tf.keras.Input(shape=input_shape, name="text")
     x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True))(
         embedding_inputs
@@ -126,44 +126,69 @@ def encode_categorical_feature(feature, name, dataset, is_string):
     return encoded_feature
 
 
+def data_to_dataset(data, index_dict):
+    data = copy.deepcopy(data)
+    # data_dict = {key: data[:, value] for key, value in index_dict.items())
+    data_dict = dict(data_dict)
+    ds = tf.data.Dataset.from_tensor_slices(data_dict)
+    return ds
+
+
 def main():
+    (anchor_index, positive_index, negative_index) = get_triplet_index_dict()
 
-    # retrieve data from database
-    conn = sqlite3.Connection(root + "/data/svo_db_20201027.db")
+    notams_data = np.load("./data/notams_data.npy", allow_pickle=True)
+    anchor_data = np.take(notams_data, anchor_index, axis=0)
+    positive_data = np.take(notams_data, positive_index, axis=0)
+    negative_data = np.take(notams_data, negative_index, axis=0)
 
-    sql = """ SELECT * FROM human_matches"""
-    matches_df = pd.read_sql_query(sql, conn)
+    notams_embeddings = np.load("./data/notams_embeddings.npy", allow_pickle=True)
+    anchor_embeddings = np.expand_dims(np.take(notams_embeddings, anchor_index), -1)
+    positive_embeddings = np.expand_dims(np.take(notams_embeddings, positive_index), -1)
+    negative_embeddings = np.expand_dims(np.take(notams_embeddings, negative_index), -1)
 
-    sql = """ SELECT * FROM launches"""
-    launches_df = pd.read_sql_query(sql, conn)
-    conn.close()
+    print(notams_data.shape)
+    print(notams_embeddings.shape)
 
-    (anchor_index, positive_index, negative_index) = get_triplet_index_dict(
-        matches_df, launches_df
-    )
-    notams_data = np.load("./data/output/notams_data.npy")
-    anchor_data = np.take(notams_data, anchor_index)
-    positive_data = np.take(notams_data, positive_index)
-    negative_data = np.take(notams_data, negative_index)
-
-    # TODO
     exit()
 
-    input_shape = (384, 1)
-    base_network = get_base_network(input_shape)
-    # print(base_network.summary())
-    siamese_network = get_siamese_network(input_shape, base_network)
-    # print(siamese_network.summary())
+    # *** numerical values ***
 
-    anchor_embeddings = np.expand_dims(np.load("./data/anchor_embeddings.npy"), -1)
-    positive_embeddings = np.expand_dims(np.load("./data/positive_embeddings.npy"), -1)
-    negative_embeddings = np.expand_dims(np.load("./data/negative_embeddings.npy"), -1)
+    feature_index = {
+        "POSSIBLE_START_DATE": 1,
+        "ISSUE_DATE": 2,
+        "LOCATION_CODE": 3,
+        "CLASSIFICATION": 4,
+        "ACCOUNT_ID": 5,
+        "DELTA_TIME": 6,
+    }
 
-    anchor_dataset = tf.data.Dataset.from_tensor_slices(anchor_embeddings)
-    positive_dataset = tf.data.Dataset.from_tensor_slices(positive_embeddings)
-    negative_dataset = tf.data.Dataset.from_tensor_slices(negative_embeddings)
+    data_input_shape = (6, 1)
+    embeddings_input_shape = (384, 1)
 
-    dataset = tf.data.Dataset.zip((anchor_dataset, positive_dataset, negative_dataset))
+    base_embeddings_network = get_base_embeddings_network(embeddings_input_shape)
+    siamese_network = get_siamese_network(
+        embeddings_input_shape, base_embeddings_network
+    )
+
+    anchor_mixed_ds = data_to_dataset(anchor_data, feature_index)
+    positive_mixed_ds = data_to_dataset(positive_data, feature_index)
+    negative_mixed_ds = data_to_dataset(negative_data, feature_index)
+
+    anchor_emb_dataset = tf.data.Dataset.from_tensor_slices(anchor_embeddings)
+    positive_emb_dataset = tf.data.Dataset.from_tensor_slices(positive_embeddings)
+    negative_emb_dataset = tf.data.Dataset.from_tensor_slices(negative_embeddings)
+
+    dataset = tf.data.Dataset.zip(
+        (
+            anchor_emb_dataset,
+            positive_emb_dataset,
+            negative_emb_dataset,
+            anchor_mixed_ds,
+            positive_mixed_ds,
+            negative_mixed_ds,
+        )
+    )
     dataset = dataset.shuffle(buffer_size=1024)
 
     train_dataset = dataset.take(round(len(anchor_embeddings) * 0.8))
@@ -181,26 +206,26 @@ def main():
 
     # *** inference ***
 
-    anch = np.expand_dims(positive_embeddings[4], 0)
-    other = np.expand_dims(negative_embeddings[4], 0)
+    # anch = np.expand_dims(positive_embeddings[4], 0)
+    # other = np.expand_dims(negative_embeddings[4], 0)
 
-    anch_prediction = base_network.predict(anch)
-    other_prediction = base_network.predict(other)
+    # anch_prediction = base_network.predict(anch)
+    # other_prediction = base_network.predict(other)
 
-    cosine_similarity = tf.keras.metrics.CosineSimilarity()
-    positive_similarity = cosine_similarity(anch_prediction, anch_prediction)
-    print("Positive similarity:", positive_similarity.numpy())
+    # cosine_similarity = tf.keras.metrics.CosineSimilarity()
+    # positive_similarity = cosine_similarity(anch_prediction, anch_prediction)
+    # print("Positive similarity:", positive_similarity.numpy())
 
-    negative_similarity = cosine_similarity(anch_prediction, other_prediction)
-    print("Negative similarity", negative_similarity.numpy())
+    # negative_similarity = cosine_similarity(anch_prediction, other_prediction)
+    # print("Negative similarity", negative_similarity.numpy())
 
-    plt.plot(history.history["loss"])
-    plt.plot(history.history["val_loss"])
-    plt.title("Loss History")
-    plt.ylabel("loss")
-    plt.xlabel("epoch")
-    plt.legend(["train", "val"], loc="upper left")
-    plt.show()
+    # plt.plot(history.history["loss"])
+    # plt.plot(history.history["val_loss"])
+    # plt.title("Loss History")
+    # plt.ylabel("loss")
+    # plt.xlabel("epoch")
+    # plt.legend(["train", "val"], loc="upper left")
+    # plt.show()
 
 
 if __name__ == "__main__":

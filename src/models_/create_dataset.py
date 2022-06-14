@@ -33,6 +33,8 @@ def main():
     notams_df = pd.read_sql_query(sql, conn)
     conn.close()
 
+    # print(notams_df["ISSUE_DATE"])
+
     # create dataframe with coluimns of interest
     notams_df = notams_df[
         [
@@ -41,10 +43,11 @@ def main():
             "POSSIBLE_START_DATE",
             "CLASSIFICATION",
             "LOCATION_CODE",
-            # "ACCOUNT_ID",
+            "ACCOUNT_ID",
         ]
     ]
-    notams_df = notams_df.dropna()
+
+    # notams_df = notams_df.dropna()
     # notams_df = notams_df.head(2)
 
     # run data pipeline on the notams dataframe
@@ -53,14 +56,14 @@ def main():
     features_pipeline.set_params(
         **{
             "preprocess__columns__location_code_idx_3__cat_boost__target": target,
-            "add_delta_time_feature_idx_4__column_indexes": [1, 2],
-            "add_text_embedder_feature_idx_5__column_index": 0,
+            "add_delta_time_feature_idx_6__column_indexes": [1, 2],
+            # "add_text_embedder_feature_idx_5__column_index": 0,
         }
     )
     notams_data = features_pipeline.fit_transform(notams_df)
 
     # save data to file
-    np.save("./data/output/notams_data", notams_data)
+    np.save("./data/notams_data", notams_data)
 
 
 if __name__ == "__main__":

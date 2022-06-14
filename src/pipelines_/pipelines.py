@@ -23,7 +23,9 @@ from transformers_.transformers import (
     DummyEncoderTransformer,
     CatBoostTransformer,
     DeltaTimeTransformer,
-    SentenceEmbedderTransformer,
+    LabelTransformer,
+    MostFrequenInputerTransformer,
+    # SentenceEmbedderTransformer,
 )
 
 
@@ -60,6 +62,13 @@ conv_notam_date_pipeline = Pipeline(
     ]
 )
 
+label_encoder_pipeline = Pipeline(
+    [
+        ("to_numbers", LabelTransformer()),
+        ("to_dataframe", SeriesToDataframeTransformer()),
+    ]
+)
+
 
 preprocess_pipeline = Pipeline(
     [
@@ -87,6 +96,12 @@ preprocess_pipeline = Pipeline(
                         cat_boost_encoder_pipeline,
                         "LOCATION_CODE",
                     ),
+                    (
+                        "classification_idx_4",
+                        label_encoder_pipeline,
+                        "CLASSIFICATION",
+                    ),
+                    ("account_id_idx_5", SeriesToDataframeTransformer(), "ACCOUNT_ID"),
                 ]
             ),
         ),
@@ -97,8 +112,9 @@ preprocess_pipeline = Pipeline(
 features_pipeline = Pipeline(
     [
         ("preprocess", preprocess_pipeline),
-        ("add_delta_time_feature_idx_4", DeltaTimeTransformer()),
-        ("add_text_embedder_feature_idx_5", SentenceEmbedderTransformer()),
+        ("add_delta_time_feature_idx_6", DeltaTimeTransformer()),
+        # too slow - done separately
+        # ("add_text_embedder_feature_idx_5", SentenceEmbedderTransformer()),
     ]
 )
 

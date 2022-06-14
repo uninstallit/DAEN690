@@ -47,8 +47,18 @@ def main():
         ]
     ]
 
-    # notams_df = notams_df.dropna()
-    # notams_df = notams_df.head(2)
+    notams_df["TEXT"] = notams_df["TEXT"].fillna("")
+    notams_df["ISSUE_DATE"] = notams_df["ISSUE_DATE"].fillna(
+        notams_df["ISSUE_DATE"].value_counts().idxmax()
+    )
+    notams_df["POSSIBLE_START_DATE"] = notams_df["POSSIBLE_START_DATE"].fillna(
+        notams_df["POSSIBLE_START_DATE"].value_counts().idxmax()
+    )
+    notams_df["CLASSIFICATION"] = notams_df["CLASSIFICATION"].fillna("")
+    notams_df["LOCATION_CODE"] = notams_df["LOCATION_CODE"].fillna("")
+    notams_df["ACCOUNT_ID"] = notams_df["ACCOUNT_ID"].fillna("")
+
+    print(notams_df.describe())
 
     # run data pipeline on the notams dataframe
     label_encoder = LabelEncoder()

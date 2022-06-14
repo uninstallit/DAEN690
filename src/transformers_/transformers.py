@@ -137,8 +137,6 @@ class NotamDateToUnixTimeTransformer(BaseEstimator, TransformerMixin):
 
         _x = [
             datetime.strptime(date_time_str, date_format)
-            if date_time_str != None
-            else datetime.strptime(x.value_counts().idxmax(), date_format)
             for date_time_str in x.tolist()
         ]
         # convert to unix time

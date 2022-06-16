@@ -1,5 +1,3 @@
-import sqlite3
-import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 
@@ -14,6 +12,8 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(parent)
 
+params_path = root + "/sample_data/params.txt"
+
 from transformers_.transformers import (
     SplitAlphaNumericTransformer,
     RemovePunctuationTransformer,
@@ -22,129 +22,119 @@ from transformers_.transformers import (
     JoinStrListTransformer,
     SeriesToDataframeTransformer,
     NotamDateToUnixTimeTransformer,
+    DummyEncoderTransformer,
+    DeltaTimeTransformer,
+    StandardScalerTransformer,
+    OrdinalEncoderAndStandardScalerTransformer,
 )
 
 
 clean_text_pipeline = Pipeline(
     [
         ("split_sentns", SplitAlphaNumericTransformer()),
-        ("remove_punkt", RemovePunctuationTransformer()),
         ("remove_digit", RemoveDigitsTransformer()),
         ("decode_abbrev", DecodeAbbrevTransformer()),
+        ("remove_punkt", RemovePunctuationTransformer()),
         ("strjoin_words", JoinStrListTransformer()),
         ("to_dataframe", SeriesToDataframeTransformer()),
     ]
 )
 
-conv_notam_date_pipeline = Pipeline(
+dummy_encoder_pipeline = Pipeline(
     [
-        ("to_unix_time", NotamDateToUnixTimeTransformer()),
+        ("one_hot", DummyEncoderTransformer()),
         ("to_dataframe", SeriesToDataframeTransformer()),
     ]
 )
 
-
-clean_all_notam_columns_pipeline = Pipeline(
+location_code_pipeline = Pipeline(
     [
         (
-            "clean_up_columns",
-            ColumnTransformer(
-                [
-                    (
-                        "clean_text_idx_0",
-                        clean_text_pipeline,
-                        "TEXT",
-                    ),
-                    (
-                        "clean_simple_text_idx_1",
-                        clean_text_pipeline,
-                        "SIMPLE_TEXT",
-                    ),
-                    (
-                        "poss_start_timestamp_idx_2",
-                        conv_notam_date_pipeline,
-                        "POSSIBLE_START_DATE",
-                    ),
-                    (
-                        "poss_end_timestamp_idx_3",
-                        conv_notam_date_pipeline,
-                        "POSSIBLE_END_DATE",
-                    ),
-                    (
-                        "issue_timestamp_idx_4",
-                        conv_notam_date_pipeline,
-                        "ISSUE_DATE",
-                    ),
-                    (
-                        "canceled_timestamp_idx_5",
-                        conv_notam_date_pipeline,
-                        "CANCELED_DATE",
-                    ),
-                ]
+            "location_code_normalize",
+            OrdinalEncoderAndStandardScalerTransformer(
+                name="location_code", filepath=params_path
             ),
-        )
+        ),
+        ("location_code_to_dataframe", SeriesToDataframeTransformer()),
+    ]
+)
+
+account_id_pipeline = Pipeline(
+    [
+        (
+            "account_id_normalize",
+            OrdinalEncoderAndStandardScalerTransformer(
+                name="account_id", filepath=params_path
+            ),
+        ),
+        ("account_id_to_dataframe", SeriesToDataframeTransformer()),
+    ]
+)
+
+start_date_pipeline = Pipeline(
+    [
+        ("start_date_unix_time", NotamDateToUnixTimeTransformer()),
+        (
+            "start_date_normalize",
+            StandardScalerTransformer(name="start_date", filepath=params_path),
+        ),
+        ("start_date_to_dataframe", SeriesToDataframeTransformer()),
+    ]
+)
+
+issue_date_pipeline = Pipeline(
+    [
+        ("issue_date_unix_time", NotamDateToUnixTimeTransformer()),
+        (
+            "issue_date_normalize",
+            StandardScalerTransformer(name="issue_date", filepath=params_path),
+        ),
+        ("issue_date_to_dataframe", SeriesToDataframeTransformer()),
+    ]
+)
+
+classification_pipeline = Pipeline(
+    [
+        (
+            "classification_normalize",
+            OrdinalEncoderAndStandardScalerTransformer(
+                name="classification", filepath=params_path
+            ),
+        ),
+        ("classification_to_dataframe", SeriesToDataframeTransformer()),
     ]
 )
 
 
-def clean_column_text_pipeline(column_name):
-    pipeline = Pipeline(
-        [
-            (
-                "clean_up_columns",
-                ColumnTransformer(
-                    [
-                        (
-                            "clean_text",
-                            clean_text_pipeline,
-                            column_name,
-                        )
-                    ]
-                ),
-            )
-        ]
-    )
-    return pipeline
+preprocess_pipeline = Pipeline(
+    [
+        (
+            "columns",
+            ColumnTransformer(
+                [
+                    ("idx_0", clean_text_pipeline, "TEXT"),
+                    ("idx_1", start_date_pipeline, "POSSIBLE_START_DATE"),
+                    ("idx_2", issue_date_pipeline, "ISSUE_DATE"),
+                    ("idx_3", location_code_pipeline, "LOCATION_CODE"),
+                    ("idx_4", classification_pipeline, "CLASSIFICATION"),
+                    ("idx_5", account_id_pipeline, "ACCOUNT_ID"),
+                ]
+            ),
+        ),
+    ]
+)
 
 
-def conv_column_date_pipeline(column_name):
-    pipeline = Pipeline(
-        [
-            (
-                "clean_up_columns",
-                ColumnTransformer(
-                    [
-                        (
-                            "conv_date",
-                            conv_notam_date_pipeline,
-                            column_name,
-                        )
-                    ]
-                ),
-            )
-        ]
-    )
-    return pipeline
+features_pipeline = Pipeline(
+    [
+        ("preprocess", preprocess_pipeline),
+        ("idx_6", DeltaTimeTransformer()),
+    ]
+)
 
 
 def main():
-
-    # example
-
-    conn = sqlite3.Connection("./data/svo_db_20201027.db")
-    sql = """ SELECT issueTime, startTime, stopTime FROM human_matches"""
-    df = pd.read_sql_query(sql, conn)
-
-    column = "IssueTime"
-    df = df[column].to_frame()
-    df = df.dropna()
-    print(df.head())
-
-    conn.close()
-
-    result = conv_column_date_pipeline(column).fit_transform(df)
-    print(result)
-    print(type(result))
+    pass
 
 
 if __name__ == "__main__":

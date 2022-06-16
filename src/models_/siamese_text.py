@@ -2,9 +2,20 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
+import sys
 import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+current = os.path.dirname(os.path.realpath(__file__))
+
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+root = os.path.dirname(parent)
+sys.path.append(root)
+
+from functions_.functions import get_triplet_index_dict
 
 # source: https://keras.io/examples/vision/siamese_network/
 
@@ -72,8 +83,8 @@ def get_base_network(input_shape):
         embedding_inputs
     )
     x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64))(x)
-    x = tf.keras.layers.Dense(128, activation="relu")(x)
-    modifier_outputs = tf.keras.layers.Dense(256, activation="relu")(x)
+    x = tf.keras.layers.Dense(256, activation="relu")(x)
+    modifier_outputs = tf.keras.layers.Dense(128, activation="relu")(x)
     modifier_model = tf.keras.Model(embedding_inputs, modifier_outputs)
     return modifier_model
 
@@ -99,13 +110,19 @@ def main():
 
     input_shape = (384, 1)
     base_network = get_base_network(input_shape)
-    # print(base_network.summary())
     siamese_network = get_siamese_network(input_shape, base_network)
-    # print(siamese_network.summary())
 
-    anchor_embeddings = np.expand_dims(np.load("./data/anchor_embeddings.npy"), -1)
-    positive_embeddings = np.expand_dims(np.load("./data/positive_embeddings.npy"), -1)
-    negative_embeddings = np.expand_dims(np.load("./data/negative_embeddings.npy"), -1)
+    (anchor_index, positive_index, negative_index) = get_triplet_index_dict()
+    notams_embeddings = np.load("./data/notams_embeddings.npy", allow_pickle=True)
+    anchor_embeddings = np.expand_dims(
+        np.take(notams_embeddings, anchor_index, axis=0), -1
+    )
+    positive_embeddings = np.expand_dims(
+        np.take(notams_embeddings, positive_index, axis=0), -1
+    )
+    negative_embeddings = np.expand_dims(
+        np.take(notams_embeddings, negative_index, axis=0), -1
+    )
 
     anchor_dataset = tf.data.Dataset.from_tensor_slices(anchor_embeddings)
     positive_dataset = tf.data.Dataset.from_tensor_slices(positive_embeddings)
@@ -124,8 +141,8 @@ def main():
     val_dataset = val_dataset.prefetch(tf.data.AUTOTUNE)
 
     siamese_model = SiameseModel(siamese_network)
-    siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
-    history = siamese_model.fit(train_dataset, epochs=10, validation_data=val_dataset)
+    siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001), weighted_metrics=[])
+    history = siamese_model.fit(train_dataset, epochs=30, validation_data=val_dataset)
 
     # *** inference ***
 

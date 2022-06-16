@@ -17,7 +17,7 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(root)
 
-from functions_.functions import get_triplet_index_dict, get_notams_data
+from functions_.functions import get_triplet_index_dict
 
 
 class SiameseModel(tf.keras.Model):
@@ -77,122 +77,123 @@ class DistanceLayer(tf.keras.layers.Layer):
         return (ap_distance, an_distance)
 
 
-def get_base_embeddings_network(input_shape):
-    embedding_inputs = tf.keras.Input(shape=input_shape, name="text")
+def get_base_network(mixed_input_shape, embedding_input_shape):
+
+    # mixed data
+    mixed_inputs = tf.keras.Input(shape=mixed_input_shape, name="mixed")
+    x = tf.keras.layers.Dense(128, activation="relu")(mixed_inputs)
+    x = tf.keras.layers.Dropout(0.2)(x)
+    x = tf.keras.layers.Dense(64, activation="relu")(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
+    mixed_outputs = tf.keras.layers.Dense(128, activation="relu")(x)
+
+    # embeddings
+    embedding_inputs = tf.keras.Input(shape=embedding_input_shape, name="text")
     x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True))(
         embedding_inputs
     )
     x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64))(x)
-    modifier_outputs = tf.keras.layers.Dense(384, activation="sigmoid")(x)
-    modifier_model = tf.keras.Model(embedding_inputs, modifier_outputs)
-    return modifier_model
+    embedding_outputs = tf.keras.layers.Dense(128, activation="sigmoid")(x)
 
+    # combine branches
+    concat = tf.keras.layers.concatenate([mixed_outputs, embedding_outputs])
+    x = tf.keras.layers.Dense(128, activation="sigmoid")(concat)
+    x = tf.keras.layers.Dropout(0.2)(x)
+    outputs = tf.keras.layers.Dense(64, activation="linear")(x)
 
-def get_siamese_network(input_shape, base_model):
-    anchor_input = tf.keras.layers.Input(name="anchor", shape=input_shape)
-    positive_input = tf.keras.layers.Input(name="positive", shape=input_shape)
-    negative_input = tf.keras.layers.Input(name="negative", shape=input_shape)
-    distances = DistanceLayer()(
-        base_model(anchor_input),
-        base_model(positive_input),
-        base_model(negative_input),
+    # mixed model
+    base_model = tf.keras.Model(
+        [mixed_inputs, embedding_inputs], outputs, name="base_model"
     )
+    return base_model
+
+
+def get_siamese_network(inputs_shape, base_model):
+    mixed_data_shape, embeddings_shape = inputs_shape
+
+    anchor_data_input = tf.keras.layers.Input(
+        name="anchor_data", shape=mixed_data_shape
+    )
+    positive_data_input = tf.keras.layers.Input(
+        name="positive_data", shape=mixed_data_shape
+    )
+    negative_data_input = tf.keras.layers.Input(
+        name="negative_data", shape=mixed_data_shape
+    )
+
+    anchor_embd_input = tf.keras.layers.Input(
+        name="anchor_embd", shape=embeddings_shape
+    )
+    positive_embd_input = tf.keras.layers.Input(
+        name="positive_embd", shape=embeddings_shape
+    )
+    negative_embd_input = tf.keras.layers.Input(
+        name="negative_embd", shape=embeddings_shape
+    )
+
+    distances = DistanceLayer()(
+        base_model([anchor_data_input, anchor_embd_input]),
+        base_model([positive_data_input, positive_embd_input]),
+        base_model([negative_data_input, negative_embd_input]),
+    )
+
     siamese_network = tf.keras.Model(
-        inputs=[anchor_input, positive_input, negative_input],
+        inputs=[
+            anchor_data_input,
+            positive_data_input,
+            negative_data_input,
+            anchor_embd_input,
+            positive_embd_input,
+            negative_embd_input,
+        ],
         outputs=distances,
         name="siamese",
     )
     return siamese_network
 
 
-def encode_numerical_feature(feature, name, dataset):
-    normalizer = tf.keras.layers.Normalization()
-    feature_ds = dataset.map(lambda x, y: x[name])
-    feature_ds = feature_ds.map(lambda x: tf.expand_dims(x, -1))
-    normalizer.adapt(feature_ds)
-    encoded_feature = normalizer(feature)
-    return encoded_feature
-
-
-def encode_categorical_feature(feature, name, dataset, is_string):
-    lookup_class = (
-        tf.keras.layers.StringLookup if is_string else tf.keras.layers.IntegerLookup
-    )
-    lookup = lookup_class(output_mode="binary")
-    feature_ds = dataset.map(lambda x, y: x[name])
-    feature_ds = feature_ds.map(lambda x: tf.expand_dims(x, -1))
-    lookup.adapt(feature_ds)
-    encoded_feature = lookup(feature)
-    return encoded_feature
-
-
-def data_to_dataset(data, index_dict):
-    data = copy.deepcopy(data)
-    # data_dict = {key: data[:, value] for key, value in index_dict.items())
-    data_dict = dict(data_dict)
-    ds = tf.data.Dataset.from_tensor_slices(data_dict)
-    return ds
-
-
 def main():
     (anchor_index, positive_index, negative_index) = get_triplet_index_dict()
 
-    notams_data = np.load("./data/notams_data.npy", allow_pickle=True)
-    anchor_data = np.take(notams_data, anchor_index, axis=0)
-    positive_data = np.take(notams_data, positive_index, axis=0)
-    negative_data = np.take(notams_data, negative_index, axis=0)
+    notams_data = np.load("./data/notams_data.npy", allow_pickle=True)[:, 1:]
+    anchor_data = np.take(notams_data, anchor_index, axis=0).astype('float32')
+    positive_data = np.take(notams_data, positive_index, axis=0).astype('float32')
+    negative_data = np.take(notams_data, negative_index, axis=0).astype('float32')
 
     notams_embeddings = np.load("./data/notams_embeddings.npy", allow_pickle=True)
-    anchor_embeddings = np.expand_dims(np.take(notams_embeddings, anchor_index), -1)
-    positive_embeddings = np.expand_dims(np.take(notams_embeddings, positive_index), -1)
-    negative_embeddings = np.expand_dims(np.take(notams_embeddings, negative_index), -1)
-
-    print(notams_data.shape)
-    print(notams_embeddings.shape)
-
-    exit()
-
-    # *** numerical values ***
-
-    feature_index = {
-        "POSSIBLE_START_DATE": 1,
-        "ISSUE_DATE": 2,
-        "LOCATION_CODE": 3,
-        "CLASSIFICATION": 4,
-        "ACCOUNT_ID": 5,
-        "DELTA_TIME": 6,
-    }
-
-    data_input_shape = (6, 1)
-    embeddings_input_shape = (384, 1)
-
-    base_embeddings_network = get_base_embeddings_network(embeddings_input_shape)
-    siamese_network = get_siamese_network(
-        embeddings_input_shape, base_embeddings_network
+    anchor_embeddings = np.expand_dims(
+        np.take(notams_embeddings, anchor_index, axis=0), -1
+    )
+    positive_embeddings = np.expand_dims(
+        np.take(notams_embeddings, positive_index, axis=0), -1
+    )
+    negative_embeddings = np.expand_dims(
+        np.take(notams_embeddings, negative_index, axis=0), -1
     )
 
-    anchor_mixed_ds = data_to_dataset(anchor_data, feature_index)
-    positive_mixed_ds = data_to_dataset(positive_data, feature_index)
-    negative_mixed_ds = data_to_dataset(negative_data, feature_index)
+    anchor_data_dataset = tf.data.Dataset.from_tensor_slices(anchor_data)
+    positive_data_dataset = tf.data.Dataset.from_tensor_slices(positive_data)
+    negative_data_dataset = tf.data.Dataset.from_tensor_slices(negative_data)
 
-    anchor_emb_dataset = tf.data.Dataset.from_tensor_slices(anchor_embeddings)
-    positive_emb_dataset = tf.data.Dataset.from_tensor_slices(positive_embeddings)
-    negative_emb_dataset = tf.data.Dataset.from_tensor_slices(negative_embeddings)
+    anchor_embd_dataset = tf.data.Dataset.from_tensor_slices(anchor_embeddings)
+    positive_embd_dataset = tf.data.Dataset.from_tensor_slices(positive_embeddings)
+    negative_embd_dataset = tf.data.Dataset.from_tensor_slices(negative_embeddings)
 
     dataset = tf.data.Dataset.zip(
         (
-            anchor_emb_dataset,
-            positive_emb_dataset,
-            negative_emb_dataset,
-            anchor_mixed_ds,
-            positive_mixed_ds,
-            negative_mixed_ds,
+            anchor_data_dataset,
+            positive_data_dataset,
+            negative_data_dataset,
+            anchor_embd_dataset,
+            positive_embd_dataset,
+            negative_embd_dataset,
         )
     )
     dataset = dataset.shuffle(buffer_size=1024)
+    assert len(anchor_data) == len(anchor_embeddings)
 
-    train_dataset = dataset.take(round(len(anchor_embeddings) * 0.8))
-    val_dataset = dataset.skip(round(len(anchor_embeddings) * 0.8))
+    train_dataset = dataset.take(round(len(anchor_data) * 0.25))
+    val_dataset = dataset.skip(round(len(anchor_data) * 0.75))
 
     train_dataset = train_dataset.batch(32, drop_remainder=False)
     train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
@@ -200,32 +201,43 @@ def main():
     val_dataset = val_dataset.batch(32, drop_remainder=False)
     val_dataset = val_dataset.prefetch(tf.data.AUTOTUNE)
 
+    mixed_data_input_shape = (6,)
+    embeddings_input_shape = (384, 1)
+
+    base_network = get_base_network(mixed_data_input_shape, embeddings_input_shape)
+    siamese_network = get_siamese_network(
+        [mixed_data_input_shape, embeddings_input_shape], base_network
+    )
+
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
-    history = siamese_model.fit(train_dataset, epochs=10, validation_data=val_dataset)
+    history = siamese_model.fit(train_dataset, epochs=15, validation_data=val_dataset)
 
     # *** inference ***
 
-    # anch = np.expand_dims(positive_embeddings[4], 0)
-    # other = np.expand_dims(negative_embeddings[4], 0)
+    anch_data = np.expand_dims(positive_data[4], 0)
+    other_data = np.expand_dims(negative_data[4], 0)
 
-    # anch_prediction = base_network.predict(anch)
-    # other_prediction = base_network.predict(other)
+    anch_embd = np.expand_dims(positive_embeddings[4], 0)
+    other_embd = np.expand_dims(negative_embeddings[4], 0)
 
-    # cosine_similarity = tf.keras.metrics.CosineSimilarity()
-    # positive_similarity = cosine_similarity(anch_prediction, anch_prediction)
-    # print("Positive similarity:", positive_similarity.numpy())
+    anch_prediction = base_network.predict([anch_data, anch_embd])
+    other_prediction = base_network.predict([other_data, other_embd])
 
-    # negative_similarity = cosine_similarity(anch_prediction, other_prediction)
-    # print("Negative similarity", negative_similarity.numpy())
+    cosine_similarity = tf.keras.metrics.CosineSimilarity()
+    positive_similarity = cosine_similarity(anch_prediction, anch_prediction)
+    print("Positive similarity:", positive_similarity.numpy())
 
-    # plt.plot(history.history["loss"])
-    # plt.plot(history.history["val_loss"])
-    # plt.title("Loss History")
-    # plt.ylabel("loss")
-    # plt.xlabel("epoch")
-    # plt.legend(["train", "val"], loc="upper left")
-    # plt.show()
+    negative_similarity = cosine_similarity(anch_prediction, other_prediction)
+    print("Negative similarity", negative_similarity.numpy())
+
+    plt.plot(history.history["loss"])
+    plt.plot(history.history["val_loss"])
+    plt.title("Loss History")
+    plt.ylabel("loss")
+    plt.xlabel("epoch")
+    plt.legend(["train", "val"], loc="upper left")
+    plt.show()
 
 
 if __name__ == "__main__":

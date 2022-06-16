@@ -5,7 +5,12 @@ import numpy as np
 import category_encoders as ce
 from datetime import datetime
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.preprocessing import (
+    OneHotEncoder,
+    LabelEncoder,
+    OrdinalEncoder,
+    StandardScaler,
+)
 from sklearn.impute import SimpleImputer
 from sentence_transformers import SentenceTransformer
 
@@ -21,6 +26,7 @@ root = os.path.dirname(parent)
 sys.path.append(root)
 
 from libs.PyNotam.notam import Notam
+from functions_.functions import ParamWriter
 
 
 class SplitAlphaNumericTransformer(BaseEstimator, TransformerMixin):
@@ -231,3 +237,60 @@ class MostFrequenInputerTransformer(BaseEstimator, TransformerMixin):
         inputer = SimpleImputer(strategy="most_frequent")
         _x = inputer.fit_transform(x)
         return pd.Series(_x, name=series_name).to_frame()
+
+
+class StandardScalerTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, name=None, filepath=None):
+        self.name = name
+        self.filepath = filepath
+
+    def fit(self, x, y=None):
+        self.scaler = StandardScaler()
+        self.writer = ParamWriter(path=self.filepath)
+        return self
+
+    def transform(self, x, y=None):
+        series_name = x.name
+        _x = x.to_numpy().reshape(-1, 1)
+        _x = np.squeeze(self.scaler.fit_transform(_x))
+        _mean = self.scaler.mean_[0]
+        _var = self.scaler.var_[0]
+        _dict = dict(
+            {
+                f"{self.name}__mean": _mean,
+                f"{self.name}__var": _var,
+            }
+        )
+        self.writer.write(_dict)
+        return pd.Series(_x, name=series_name)
+
+
+class OrdinalEncoderAndStandardScalerTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, name=None, filepath=None):
+        self.name = name
+        self.filepath = filepath
+
+    def fit(self, x, y=None):
+        self.ordinal_encoder = OrdinalEncoder()
+        self.scaler = StandardScaler()
+        self.writer = ParamWriter(path=self.filepath)
+        return self
+
+    def transform(self, x, y=None):
+        series_name = x.name
+        _x = x.to_numpy().reshape(-1, 1)
+        _x = self.ordinal_encoder.fit_transform(_x)
+        categories = self.ordinal_encoder.categories_
+        _encoding_dict = dict(zip((categories[0]), range(len(categories[0]))))
+        _x = np.squeeze(self.scaler.fit_transform(_x))
+        _mean = self.scaler.mean_[0]
+        _var = self.scaler.var_[0]
+        _dict = dict(
+            {
+                f"{self.name}__mean": _mean,
+                f"{self.name}__var": _var,
+                f"{self.name}__encodings": _encoding_dict,
+            }
+        )
+        self.writer.write(_dict)
+        return pd.Series(_x, name=series_name)

@@ -1,6 +1,4 @@
-import copy
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
@@ -93,13 +91,13 @@ def get_base_network(mixed_input_shape, embedding_input_shape):
         embedding_inputs
     )
     x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64))(x)
-    embedding_outputs = tf.keras.layers.Dense(128, activation="sigmoid")(x)
+    embedding_outputs = tf.keras.layers.Dense(128, activation="relu")(x)
 
     # combine branches
     concat = tf.keras.layers.concatenate([mixed_outputs, embedding_outputs])
-    x = tf.keras.layers.Dense(128, activation="sigmoid")(concat)
+    x = tf.keras.layers.Dense(128, activation="relu")(concat)
     x = tf.keras.layers.Dropout(0.2)(x)
-    outputs = tf.keras.layers.Dense(64, activation="linear")(x)
+    outputs = tf.keras.layers.Dense(128, activation="linear")(x)
 
     # mixed model
     base_model = tf.keras.Model(
@@ -156,9 +154,9 @@ def main():
     (anchor_index, positive_index, negative_index) = get_triplet_index_dict()
 
     notams_data = np.load("./data/notams_data.npy", allow_pickle=True)[:, 1:]
-    anchor_data = np.take(notams_data, anchor_index, axis=0).astype('float32')
-    positive_data = np.take(notams_data, positive_index, axis=0).astype('float32')
-    negative_data = np.take(notams_data, negative_index, axis=0).astype('float32')
+    anchor_data = np.take(notams_data, anchor_index, axis=0).astype("float32")
+    positive_data = np.take(notams_data, positive_index, axis=0).astype("float32")
+    negative_data = np.take(notams_data, negative_index, axis=0).astype("float32")
 
     notams_embeddings = np.load("./data/notams_embeddings.npy", allow_pickle=True)
     anchor_embeddings = np.expand_dims(
@@ -189,7 +187,7 @@ def main():
             negative_embd_dataset,
         )
     )
-    dataset = dataset.shuffle(buffer_size=1024)
+    dataset = dataset.shuffle(buffer_size=4096)
     assert len(anchor_data) == len(anchor_embeddings)
 
     train_dataset = dataset.take(round(len(anchor_data) * 0.25))
@@ -212,6 +210,8 @@ def main():
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
     history = siamese_model.fit(train_dataset, epochs=15, validation_data=val_dataset)
+
+    base_network.save(root + "/src/saved_models_/test_model")
 
     # *** inference ***
 

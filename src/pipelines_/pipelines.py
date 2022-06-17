@@ -133,6 +133,26 @@ features_pipeline = Pipeline(
 )
 
 
+def clean_column_text_pipeline(column_name):
+    pipeline = Pipeline(
+        [
+            (
+                "clean_up_columns",
+                ColumnTransformer(
+                    [
+                        (
+                            "clean_text",
+                            clean_text_pipeline,
+                            column_name,
+                        )
+                    ]
+                ),
+            )
+        ]
+    )
+    return pipeline
+
+
 def main():
     pass
 

@@ -32,7 +32,7 @@ embedder = SentenceTransformer("all-MiniLM-L6-v2")
 def semantic_search_similar_notams(corpus_df, queries_df):
     print(f'semantic_search')
 
-    corpus = corpus_df['E_CODE'].to_numpy()
+    corpus = corpus_df['TEXT'].to_numpy()
     notam_rec_ids = corpus_df['NOTAM_REC_ID'].to_numpy()
     corpus_embeddings = embedder.encode(corpus, convert_to_tensor=True)
 
@@ -57,18 +57,18 @@ def main():
     cursor = conn.cursor()
 
     # launch_id 391 time is 2018-04-02 20:30:38
-    sql = """ SELECT NOTAM_REC_ID, E_CODE FROM notams WHERE 
+    sql = """ SELECT NOTAM_REC_ID, E_CODE, TEXT FROM notams WHERE 
                 DATETIME(notams.POSSIBLE_START_DATE) < '2018-04-02 20:30:38' and DATETIME(notams.POSSIBLE_END_DATE) = '2018-04-02 21:08:00' 
                 and (E_CODE not null or TEXT not null) """
     data = cursor.execute(sql).fetchall()
-    notam_df = pd.DataFrame({ 'NOTAM_REC_ID': [d[0] for d in data], 'E_CODE': [d[1] for d in data]})
+    # take E code col if not take Text column
+    notam_df = pd.DataFrame({ 'NOTAM_REC_ID': [d[0] for d in data], 'TEXT': [d[1] if d[1]  else d[2] for d in data]})
     notam_df = notam_df.dropna()
     print(f'FOUND notams: {len(notam_df)}')
-    
     # corpus 
-    corpus = clean_column_text_pipeline("E_CODE").fit_transform(notam_df)
+    corpus = clean_column_text_pipeline("TEXT").fit_transform(notam_df)
     corpus = np.squeeze(corpus, axis=1)
-    corpus_df = pd.DataFrame( {'NOTAM_REC_ID': notam_df['NOTAM_REC_ID'].to_numpy(), 'E_CODE': corpus})
+    corpus_df = pd.DataFrame( {'NOTAM_REC_ID': notam_df['NOTAM_REC_ID'].to_numpy(), 'TEXT': corpus})
     
     #query 
     # starting on a given found NOTAM that matched with launch_id = 391

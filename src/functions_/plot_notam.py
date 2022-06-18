@@ -66,12 +66,12 @@ def plot_notam_missing_polygons(cursor):
     # plotting four plots in one tile 2 x 2
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
     sns.countplot(data= df, x='classification', ax=ax1)
-    ax1.set_title('NOTAM by Classification - Vertices Not Available ')
+    ax1.set_title('Polygons Not Available by Classification')
     ax1.set_ylabel('Count')
     ax1.set_xlabel('NOTAM by Classification')
 
     sns.countplot(data= df, x='notam_type', ax=ax2)
-    ax2.set_title('NOTAM by Type - Vertices Not Available')
+    ax2.set_title('Polygons Not Available by Type')
     ax2.set_ylabel('Count')
     ax2.set_xlabel('NOTAM by Type')
 
@@ -83,7 +83,7 @@ def main():
     conn = sqlite3.Connection("./data/svo_db_20201027.db")
     cursor = conn.cursor()
     
-    plot_notam_data(cursor)
+    #plot_notam_data(cursor)
     plot_notam_missing_polygons(cursor)
     
     conn.close()

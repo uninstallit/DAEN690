@@ -202,11 +202,12 @@ def main():
     notam_id_missing_polygons = find_notams_missing_polygons(cursor)
     print(f'Found Notams missing polygons:{len(notam_id_missing_polygons)}')
 
+    # search rules: Q_Code->AFFECTED_FIR->FDC->AIRPORT->ARTCC
     make_notam_centroids_from_Qcode(conn, cursor)
-    make_notam_centroids_from_location_ARTCC(conn, cursor)
-    make_notam_centroids_from_location_code_FDC(conn, cursor)
     make_notam_centroids_from_affected_FIR_US(conn, cursor)
+    make_notam_centroids_from_location_code_FDC(conn, cursor)
     make_notam_centroids_from_location_code_Airport(conn, cursor)
+    make_notam_centroids_from_location_ARTCC(conn, cursor)
     
     conn.close()
 

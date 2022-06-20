@@ -1,9 +1,18 @@
-import os
 import pandas as pd
 import sqlite3
 from pathlib import Path
 from traceback import format_exc
 import csv
+
+import sys
+import os
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+root = os.path.dirname(parent)
+
+# sys.path.append(parent)  # parent = /Users/tranbre/gmu/01-DAEN-690/DAEN690/src
+# from functions_.coordinates_utils import get_DDcoords
 
 def import_human_annotation_matching_table(conn, file_name):
     try:
@@ -87,14 +96,25 @@ def import_artcc_boundary_table(conn, file_name):
     except:
         print(format_exc())
 
-def import_airports_table(conn, file_name):
+def import_external_airports_artcc_table(conn, file_name):
     try:
         with open(file_name, 'r') as fn:
             lines = fn.readlines()
 
         df = pd.read_csv(file_name, engine="python" )
-        df.to_sql('airports', conn, if_exists='replace', index = False)
-        print(f'AIRPORTS {file_name} - original count:{len(lines)}, after process count:{df.shape[0]}. Ignored count: {len(lines)-df.shape[0]-1}')
+        df.to_sql('external_airports_artcc', conn, if_exists='replace', index = False)
+        print(f'external_airports_artcc {file_name} - original count:{len(lines)}, after process count:{df.shape[0]}. Ignored count: {len(lines)-df.shape[0]-1}')
+    except:
+        print(format_exc())
+
+def import_external_airports_icao_table(conn, file_name):
+    try:
+        with open(file_name, 'r') as fn:
+            lines = fn.readlines()
+
+        df = pd.read_csv(file_name, engine="python" )
+        df.to_sql('external_airports_icao', conn, if_exists='replace', index = False)
+        print(f'external_airports_icao {file_name} - original count:{len(lines)}, after process count:{df.shape[0]} Ignored count: {len(lines)-df.shape[0]-1}')
     except:
         print(format_exc())
 
@@ -113,22 +133,26 @@ def import_sample_data():
     conn.close()
 
 def import_svo_data():
-    dir = '../../data/'
-    svo_db = '../../data/svo_db_20201027.db'
-    isExist = os.path.exists(dir)
+    data_dir = root + '/data/'
+    svo_db = root + '/data/svo_db_20201027.db'
+    isExist = os.path.exists(data_dir)
     if not isExist:
-        os.makedirs(dir)
+        os.makedirs(data_dir)
     file = Path(svo_db)
+
     file.touch(exist_ok=True)
+
     conn = sqlite3.connect(svo_db)
-    import_human_annotation_matching_table(conn, '../../data/HumanAnnotatedMatches_SVO_DB_20200127_pipes_noquotes.csv')
-    import_vertices_table(conn, '../../data/vertices_20201027.csv')
-    import_polygon_table(conn, '../../data/polygon_20201027.csv')
-    import_launches_table(conn, '../../data/launches_20201027.csv')
-    import_spaceports_table(conn, '../../data/spaceports_20201027.csv')
-    import_notams_table(conn, '../../data/notam_20201027_pipes_noquotes.csv')
-    import_artcc_boundary_table(conn, '../../data/external_artcc_boundary.csv')
-    import_airports_table(conn, '../../data/external_airports.csv')
+    import_human_annotation_matching_table(conn, data_dir + 'HumanAnnotatedMatches_SVO_DB_20200127_pipes_noquotes.csv')
+    import_vertices_table(conn, data_dir +  'vertices_20201027.csv')
+    import_polygon_table(conn, data_dir + 'polygon_20201027.csv')
+    import_launches_table(conn, data_dir + 'launches_20201027.csv')
+    import_spaceports_table(conn, data_dir + 'spaceports_20201027.csv')
+    import_notams_table(conn, data_dir + 'notam_20201027_pipes_noquotes.csv')
+    import_artcc_boundary_table(conn, data_dir + 'external_artcc_boundary.csv')
+    import_external_airports_artcc_table(conn, data_dir + 'external_airports.csv')
+    import_external_airports_icao_table(conn, data_dir + 'external_airports_database.csv')
+
     conn.close()
 
 def main():

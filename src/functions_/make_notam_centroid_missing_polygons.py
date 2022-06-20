@@ -52,9 +52,9 @@ def make_notam_centroids_from_Qcode(conn, cursor):
     print(f'Found centroids in Q_CODE:{count_valid_q}, not found centroids {len(notams_q_code) -count_valid_q }')
 
     df.to_sql('notam_centroids', conn, if_exists='append', index = False)
-    print(f'successful wrote NOTAMs centroids to notam_centroids db: {len(df)}')
+    print(f'Successful wrote Q_CODE NOTAMs centroids to notam_centroids db: {len(df)}')
 
-def make_notam_centroids_from_ARTCC(conn, cursor):
+def make_notam_centroids_from_location_ARTCC(conn, cursor):
     sql =""" select notam_rec_id, location_code, location_name from notams where  
         location_name like '%ARTCC%'  and
         NOTAM_REC_ID not in (select NOTAM_REC_ID from Polygon) and
@@ -86,7 +86,7 @@ def make_notam_centroids_from_ARTCC(conn, cursor):
     print(f'found_location_code:{found_location_code}')
     print(f'location_code_not_found:{len(location_code_not_found)}, {location_code_not_found}')
     df.to_sql('notam_centroids', conn, if_exists='append', index = False)
-    print(f'Successfully wrote {len(df)} rows to notam_centroids table')
+    print(f'Successful wrote ARTCC NOTAMs centroids to notam_centroids db: {len(df)}')
 
 def make_notam_centroids_from_affected_FIR_US(conn, cursor):
     print(f'make_notam_centroids_from_affected_FIR_US')
@@ -98,7 +98,7 @@ def make_notam_centroids_from_affected_FIR_US(conn, cursor):
         NOTAM_REC_ID not in (select NOTAM_REC_ID from notam_centroids) """
 
     affected_fir_notams = [(notam[0], notam[1]) for notam in cursor.execute(sql).fetchall()]
-    print(f'found affected_fir notams len: {len(affected_fir_notams)}')
+    print(f'found affected_fir KZ notams len: {len(affected_fir_notams)}')
 
     sql =""" select facilityId, latitude, longitude, radius_nm from artcc_centroids """
     artcc_centroids = [(artcc[0], artcc[1], artcc[2], artcc[3]) for artcc in cursor.execute(sql).fetchall()]
@@ -125,13 +125,12 @@ def make_notam_centroids_from_affected_FIR_US(conn, cursor):
     print(f'found_location_code:{found_location_code}')
     print(f'location_code_not_found:{len(location_code_not_found)}, {location_code_not_found}')
     df.to_sql('notam_centroids', conn, if_exists='append', index = False)
-    print(f'Successfully wrote {len(df)} rows to notam_centroids table')
+    print(f'Successful wrote AFFECTED_FIR(US) NOTAMs centroids to notam_centroids db: {len(df)}')
 
 def make_notam_centroids_from_location_code_FDC(conn, cursor):
     print('make_notam_centroids_from_location_code_FDC')
     # FDC FAA 800 Independence Avenue, SW, Washington, DC 20591
     # 38.886924937762174, -77.02280003895204
-
     LAT = 38.886925
     LON = -77.022800
     RADIUS = 0
@@ -140,15 +139,60 @@ def make_notam_centroids_from_location_code_FDC(conn, cursor):
         NOTAM_REC_ID not in (select NOTAM_REC_ID from Polygon) and
         NOTAM_REC_ID not in (select NOTAM_REC_ID from notam_centroids) """
 
-    fdc_notams = [(notam[0], notam[1], notam) for notam in cursor.execute(sql).fetchall()]
-    print(f'found FDC notams len: {len(fdc_notams)}')      
+    fdc_notams = [(notam[0], notam[1], notam[2]) for notam in cursor.execute(sql).fetchall()]
+    print(f'found location_code FDC notams len: {len(fdc_notams)}')      
     df = pd.DataFrame(columns = ['NOTAM_REC_ID','LATITUDE','LONGITUDE','RADIUS_NM'] )
     for notam in fdc_notams:
         notam_rec_id= notam[0]
         df.loc[len(df.index)] = [notam_rec_id, LAT, LON, RADIUS] 
 
     df.to_sql('notam_centroids', conn, if_exists='append', index = False)
-    print(f'Successfully wrote {len(df)} rows to notam_centroids table')
+    print(f'Successful wrote location_code FDC NOTAMs centroids to notam_centroids db: {len(df)}')
+
+def make_notam_centroids_from_location_code_Airport(conn, cursor):
+    print('make_notam_centroids_from_location_code_Airport')
+
+    sql = """ select notams.NOTAM_REC_ID, notams.location_code, notams.location_name from notams where 
+        notams.NOTAM_REC_ID not in (select NOTAM_REC_ID from Polygon) and
+        notams.NOTAM_REC_ID not in (select NOTAM_REC_ID from notam_centroids) and 
+        (notams.location_code in (select icao_code from external_airports_icao) or 
+        notams.location_code in (select iata_code from external_airports_icao)) """
+
+    airport_notams = [(notam[0], notam[1], notam[2]) for notam in cursor.execute(sql).fetchall()]
+    print(f'found airport notams len: {len(airport_notams)}')    
+
+    sql=""" select icao_code, iata_code, lat_decimal, lon_decimal from external_airports_icao """
+    icao_airports = [(a[0], a[1], a[2], a[3]) for a in cursor.execute(sql).fetchall()]
+
+    icao_code_airport_dict = {}
+    iata_code_airport_dict = {}
+    for a in icao_airports:
+        icao_code, iata_code, lat_decimal, lon_decimal = a[0], a[1], a[2], a[3]
+        if icao_code != None and len(icao_code):
+            icao_code_airport_dict[icao_code] = (lat_decimal, lon_decimal)
+        if iata_code != None and len(iata_code):
+            iata_code_airport_dict[iata_code] =  (lat_decimal, lon_decimal)
+
+    location_code_not_found = set()
+    found_location_code = 0
+    df = pd.DataFrame(columns = ['NOTAM_REC_ID','LATITUDE','LONGITUDE','RADIUS_NM'] )
+    for notam in airport_notams:
+        notam_rec_id, location_code = notam[0],notam[1]
+        if location_code in icao_code_airport_dict:
+            (lat, lon) = icao_code_airport_dict[location_code]
+            df.loc[len(df.index)] = [notam_rec_id, lat, lon, 0] 
+            found_location_code +=1
+        elif location_code in iata_code_airport_dict:
+            (lat, lon) = iata_code_airport_dict[location_code]
+            df.loc[len(df.index)] = [notam_rec_id, lat, lon, 0] 
+            found_location_code +=1         
+        else:
+            location_code_not_found.add(location_code)
+    
+    assert len(location_code_not_found) == 0
+    df.to_sql('notam_centroids', conn, if_exists='append', index = False)
+    print(f'Successful wrote airport location_code to notam_centroids db: {len(df)}')
+   
 
 def main():
     conn = sqlite3.Connection("./data/svo_db_20201027.db")
@@ -159,9 +203,10 @@ def main():
     print(f'Found Notams missing polygons:{len(notam_id_missing_polygons)}')
 
     make_notam_centroids_from_Qcode(conn, cursor)
-    make_notam_centroids_from_ARTCC(conn, cursor)
-    make_notam_centroids_from_affected_FIR_US(conn, cursor)
+    make_notam_centroids_from_location_ARTCC(conn, cursor)
     make_notam_centroids_from_location_code_FDC(conn, cursor)
+    make_notam_centroids_from_affected_FIR_US(conn, cursor)
+    make_notam_centroids_from_location_code_Airport(conn, cursor)
     
     conn.close()
 

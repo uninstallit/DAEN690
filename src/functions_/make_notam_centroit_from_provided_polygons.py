@@ -63,7 +63,8 @@ def main():
 
     df =  make_centroid_from_provided_polygons(conn, cursor)
     df.to_sql('notam_centroids', conn, if_exists='replace', index = False)
-    
+    print(f'Successful wrote notam_centroids db: {len(df)}')
+
     conn.close()
 
 if __name__ == "__main__":

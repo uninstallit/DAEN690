@@ -1,4 +1,3 @@
-# TODO
 
 # source: https://www.codegrepper.com/code-examples/python/sentence+transformers
 

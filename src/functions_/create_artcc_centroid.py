@@ -12,7 +12,7 @@ from functions_.coordinates_utils import calculate_centroid_and_radius, get_DDco
 
 def make_artcc_centroid(cursor):
     print('make_centroid_from_artcc')
-    sql = """ SELECT facilityId, latitude, longitude FROM artcc_boundary """
+    sql = """ SELECT facilityId, latitude, longitude FROM external_artcc_boundary """
     artccs = [(row[0], row[1], row[2]) for row in cursor.execute(sql).fetchall()]
 
     # table artccc stores lat lon as str, we need to convert to DD format

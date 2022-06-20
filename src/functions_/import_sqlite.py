@@ -91,8 +91,8 @@ def import_artcc_boundary_table(conn, file_name):
             lines = fn.readlines()
 
         df = pd.read_csv(file_name, engine="python" )
-        df.to_sql('artcc_boundary', conn, if_exists='replace', index = False)
-        print(f'ARTCC_BOUNDARY {file_name} - original count:{len(lines)}, after process count:{df.shape[0]}. Ignored count: {len(lines)-df.shape[0]-1}')
+        df.to_sql('external_artcc_boundary', conn, if_exists='replace', index = False)
+        print(f'external_artcc_boundary {file_name} - original count:{len(lines)}, after process count:{df.shape[0]}. Ignored count: {len(lines)-df.shape[0]-1}')
     except:
         print(format_exc())
 

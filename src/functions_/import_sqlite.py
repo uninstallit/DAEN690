@@ -2,6 +2,7 @@ import pandas as pd
 import sqlite3
 from pathlib import Path
 from traceback import format_exc
+import chardet
 import csv
 
 import sys
@@ -11,10 +12,8 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 root = os.path.dirname(parent)
 
-# sys.path.append(parent)  # parent = /Users/tranbre/gmu/01-DAEN-690/DAEN690/src
-# from functions_.coordinates_utils import get_DDcoords
 
-def import_human_annotation_matching_table(conn, file_name):
+def import_human_annotation_matches_table(conn, file_name):
     try:
         with open(file_name, 'r') as fn:
             lines = fn.readlines()
@@ -22,6 +21,18 @@ def import_human_annotation_matching_table(conn, file_name):
         df = pd.read_csv(file_name,  encoding='UTF-8', error_bad_lines=False, engine="python", delimiter='|' )
         df.to_sql('human_matches', conn, if_exists='replace', index = False)
         print(f'HumanMatches {file_name} - original count:{len(lines)}, after process count:{df.shape[0]}. Ignored count: {len(lines)-df.shape[0]-1}')
+    except:
+        print(format_exc())
+
+def import_human_annotation_poor_matches_table(conn, file_name):
+    try:
+        with open(file_name, 'r', encoding='latin-1') as fn:
+            lines = fn.readlines()
+        print(f'count:{len(lines)}')
+
+        df = pd.read_csv(file_name,  encoding='latin-1', error_bad_lines=False, engine="python", sep='\t')
+        df.to_sql('human_poor_matches', conn, if_exists='replace', index = False)
+        print(f'HumanPoorMatches {file_name} - original count:{len(lines)}, after process count:{df.shape[0]}. Ignored count: {len(lines)-df.shape[0]-1}')
     except:
         print(format_exc())
 
@@ -143,15 +154,16 @@ def import_svo_data():
     file.touch(exist_ok=True)
 
     conn = sqlite3.connect(svo_db)
-    import_human_annotation_matching_table(conn, data_dir + 'HumanAnnotatedMatches_SVO_DB_20200127_pipes_noquotes.csv')
-    import_vertices_table(conn, data_dir +  'vertices_20201027.csv')
-    import_polygon_table(conn, data_dir + 'polygon_20201027.csv')
-    import_launches_table(conn, data_dir + 'launches_20201027.csv')
-    import_spaceports_table(conn, data_dir + 'spaceports_20201027.csv')
-    import_notams_table(conn, data_dir + 'notam_20201027_pipes_noquotes.csv')
-    import_artcc_boundary_table(conn, data_dir + 'external_artcc_boundary.csv')
-    import_external_airports_artcc_table(conn, data_dir + 'external_airports.csv')
-    import_external_airports_icao_table(conn, data_dir + 'external_airports_database.csv')
+    #import_human_annotation_matches_table(conn, data_dir + 'HumanAnnotatedMatches_SVO_DB_20200127_pipes_noquotes.csv')
+    import_human_annotation_poor_matches_table(conn, data_dir + 'HumanAnnotatedMatches_poormatches_SVO_DB_20201027.csv')
+    # import_vertices_table(conn, data_dir +  'vertices_20220621.csv')
+    # import_polygon_table(conn, data_dir + 'polygon_20201027.csv')
+    # import_launches_table(conn, data_dir + 'launches_20201027.csv')
+    # import_spaceports_table(conn, data_dir + 'spaceports_20201027.csv')
+    # import_notams_table(conn, data_dir + 'notam_20201027_pipes_noquotes.csv')
+    # import_artcc_boundary_table(conn, data_dir + 'external_artcc_boundary.csv')
+    # import_external_airports_artcc_table(conn, data_dir + 'external_airports.csv')
+    # import_external_airports_icao_table(conn, data_dir + 'external_airports_database.csv')
 
     conn.close()
 

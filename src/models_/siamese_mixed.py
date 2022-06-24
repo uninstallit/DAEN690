@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
+from torch import embedding
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 current = os.path.dirname(os.path.realpath(__file__))
@@ -150,24 +152,30 @@ def get_siamese_network(inputs_shape, base_model):
     return siamese_network
 
 
+def fromBuffer(byte_embeddings):
+    _embeddings = np.array(
+        [
+            np.frombuffer(byte_embeddings, dtype=np.float32)
+            for byte_embeddings in byte_embeddings
+        ]
+    ).astype(np.float32)
+    return _embeddings
+
+
 def main():
-    (anchor_index, positive_index, negative_index) = get_triplet_index_dict()
 
-    notams_data = np.load("./data/notams_data.npy", allow_pickle=True)[:, 1:]
-    anchor_data = np.take(notams_data, anchor_index, axis=0).astype("float32")
-    positive_data = np.take(notams_data, positive_index, axis=0).astype("float32")
-    negative_data = np.take(notams_data, negative_index, axis=0).astype("float32")
+    anchor_data = np.load("./data/anchor_data.npy", allow_pickle=True)
+    positive_data = np.load("./data/positive_data.npy", allow_pickle=True)
+    negative_data = np.load("./data/negative_data.npy", allow_pickle=True)
 
-    notams_embeddings = np.load("./data/notams_embeddings.npy", allow_pickle=True)
-    anchor_embeddings = np.expand_dims(
-        np.take(notams_embeddings, anchor_index, axis=0), -1
-    )
-    positive_embeddings = np.expand_dims(
-        np.take(notams_embeddings, positive_index, axis=0), -1
-    )
-    negative_embeddings = np.expand_dims(
-        np.take(notams_embeddings, negative_index, axis=0), -1
-    )
+    anchor_embeddings = np.expand_dims(fromBuffer(anchor_data[:, 8]), -1)
+    positive_embeddings = np.expand_dims(fromBuffer(positive_data[:, 8]), -1)
+    negative_embeddings = np.expand_dims(fromBuffer(negative_data[:, 8]), -1)
+
+    # drop id, text, and byte array
+    anchor_data = anchor_data[:, 2:-1].astype("float32")
+    positive_data = positive_data[:, 2:-1].astype("float32")
+    negative_data = negative_data[:, 2:-1].astype("float32")
 
     anchor_data_dataset = tf.data.Dataset.from_tensor_slices(anchor_data)
     positive_data_dataset = tf.data.Dataset.from_tensor_slices(positive_data)
@@ -190,8 +198,8 @@ def main():
     dataset = dataset.shuffle(buffer_size=4096)
     assert len(anchor_data) == len(anchor_embeddings)
 
-    train_dataset = dataset.take(round(len(anchor_data) * 0.25))
-    val_dataset = dataset.skip(round(len(anchor_data) * 0.75))
+    train_dataset = dataset.take(round(len(anchor_data) * 0.80))
+    val_dataset = dataset.skip(round(len(anchor_data) * 0.20))
 
     train_dataset = train_dataset.batch(32, drop_remainder=False)
     train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
@@ -209,7 +217,7 @@ def main():
 
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
-    history = siamese_model.fit(train_dataset, epochs=15, validation_data=val_dataset)
+    history = siamese_model.fit(train_dataset, epochs=55, validation_data=val_dataset)
 
     base_network.save(root + "/src/saved_models_/test_model")
 

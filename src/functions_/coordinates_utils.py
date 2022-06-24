@@ -1,4 +1,4 @@
-from shapely.geometry import Polygon, Point, LineString
+from shapely.geometry import Polygon, Point, LineString, MultiPoint
 from geographiclib.geodesic import Geodesic
 
 # def clean(text):
@@ -78,12 +78,12 @@ def calculate_centroid_and_radius(vertices):
                 radius = dis
         return (round(centroid.x, 6),round(centroid.y, 6), round(radius, 2))
 
-    p1 = Polygon(vertices )
+    p1 = LineString(vertices )
     centroid = p1.centroid
     x_lat = centroid.x
     x_lon = centroid.y
     radius = 0
-    for x, y in p1.exterior.coords:
+    for x, y in p1.coords:
         g = geod.Inverse(x_lat, x_lon, x, y ) 
         dis = g['s12']/1852.344  # 1852.344 meter = 1NM
         if dis > radius:
@@ -113,7 +113,25 @@ def main():
     coords = get_DDcoords(test)   
     print(f's:{test} => {coords}') 
 
-    # TODO test calculate_centroid_and_radius
+    #(LAT, LON)
+    vertices = [(8.68505555555556,-79.8726944444444 ),
+                (8.50419444444444, -79.8733888888889),
+                (8.68386111111111, -79.54552777777779),
+                (8.503, -79.54622222222221),
+                (8.68505555555556, -79.8726944444444)]
+
+    (lat, lon, radius) = calculate_centroid_and_radius(vertices)
+    print(f'centroid:{lat,lon, radius}')
+
+    # plot on MI Map Tools: GeoPlotter
+    # https://mobisoftinfotech.com/tools/plot-multiple-points-on-map/#
+    # 8.685055,-79.872694,"blue",marker
+    # 8.504194,-79.873388,"blue",marker
+    # 8.683861,-79.545527,"blue",marker
+    # 8.503,-79.546222,"blue",marker
+    # 8.685055,-79.872694,"blue",marker
+    # 8.594028,-79.709458,"red",marker
+
 
 if __name__ == "__main__":
     main()

@@ -26,6 +26,7 @@ from transformers_.transformers import (
     DeltaTimeTransformer,
     StandardScalerTransformer,
     OrdinalEncoderAndStandardScalerTransformer,
+    SentenceEmbedderTransformer,
 )
 
 
@@ -112,12 +113,13 @@ preprocess_pipeline = Pipeline(
             "columns",
             ColumnTransformer(
                 [
-                    ("idx_0", clean_text_pipeline, "TEXT"),
-                    ("idx_1", start_date_pipeline, "POSSIBLE_START_DATE"),
-                    ("idx_2", issue_date_pipeline, "ISSUE_DATE"),
-                    ("idx_3", location_code_pipeline, "LOCATION_CODE"),
-                    ("idx_4", classification_pipeline, "CLASSIFICATION"),
-                    ("idx_5", account_id_pipeline, "ACCOUNT_ID"),
+                    ("idx_0", SeriesToDataframeTransformer(), "NOTAM_REC_ID"),
+                    ("idx_1", clean_text_pipeline, "TEXT"),
+                    ("idx_2", start_date_pipeline, "POSSIBLE_START_DATE"),
+                    ("idx_3", issue_date_pipeline, "ISSUE_DATE"),
+                    ("idx_4", location_code_pipeline, "LOCATION_CODE"),
+                    ("idx_5", classification_pipeline, "CLASSIFICATION"),
+                    ("idx_6", account_id_pipeline, "ACCOUNT_ID"),
                 ]
             ),
         ),
@@ -128,9 +130,11 @@ preprocess_pipeline = Pipeline(
 features_pipeline = Pipeline(
     [
         ("preprocess", preprocess_pipeline),
-        ("idx_6", DeltaTimeTransformer()),
+        ("idx_7", DeltaTimeTransformer()),
+        ("idx_8", SentenceEmbedderTransformer()),
     ]
 )
+
 
 def clean_column_text_pipeline(col_name):
     _pipeline = Pipeline(
@@ -144,9 +148,9 @@ def clean_column_text_pipeline(col_name):
                 ),
             ),
         ]
-    
     )
     return _pipeline
+
 
 def clean_column_text_pipeline(column_name):
     pipeline = Pipeline(

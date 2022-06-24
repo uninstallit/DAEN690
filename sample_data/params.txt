@@ -1,6 +1,8 @@
 {
     "start_date__mean": 1522723067.0433567,
     "start_date__var": 1183788875501892.2,
+    "issue_date__mean": 1522605604.8175852,
+    "issue_date__var": 1176916013951992.0,
     "location_code__mean": 9075.840068470732,
     "location_code__var": 16754138.81783027,
     "location_code__encodings": {
@@ -14405,16 +14407,6 @@
         "ZZV": 14398,
         "ZZZ": 14399
     },
-    "account_ide__mean": 1.8,
-    "account_ide__var": 0.56,
-    "account_ide__encodings": {
-        "SAEZYNYX": 0,
-        "SEE": 1,
-        "SUAC": 2,
-        "YQY": 3
-    },
-    "issue_date__mean": 1522605604.8175852,
-    "issue_date__var": 1176916013951992.0,
     "classification__mean": 1.3695273725326655,
     "classification__var": 1.6939238456371184,
     "classification__encodings": {

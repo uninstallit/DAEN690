@@ -26,7 +26,7 @@ root = os.path.dirname(parent)
 sys.path.append(root)
 
 from libs.PyNotam.notam import Notam
-from functions_.functions import ParamWriter
+from functions_.functions import ParamWriter, ParamReader
 
 
 class SplitAlphaNumericTransformer(BaseEstimator, TransformerMixin):
@@ -209,17 +209,20 @@ class DeltaTimeTransformer(BaseEstimator, TransformerMixin):
 
 
 class SentenceEmbedderTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, column_index=None):
+    def __init__(self, column_index=None, skip=True):
         self.column_index = column_index
+        self.skip = skip
         self.embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
     def fit(self, x, y=None):
         return self
 
     def transform(self, x, y=None):
+        if self.skip is True:
+            return x
+
         _x = self.embedder.encode(x[:, self.column_index], convert_to_numpy=True)
-        # use np.fromstring('1 2', dtype=int, sep=' ') to decode
-        _x = np.apply_along_axis(str, 1, _x)
+        _x = np.apply_along_axis(np.ndarray.tobytes, 1, _x)
         _x = np.expand_dims(_x, -1)
         x = np.hstack((x, _x))
         return x
@@ -240,57 +243,79 @@ class MostFrequenInputerTransformer(BaseEstimator, TransformerMixin):
 
 
 class StandardScalerTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, name=None, filepath=None):
+    def __init__(self, name=None, filepath=None, isInference=False):
         self.name = name
         self.filepath = filepath
+        self.isInference = isInference
 
     def fit(self, x, y=None):
         self.scaler = StandardScaler()
         self.writer = ParamWriter(path=self.filepath)
+        self.reader = ParamReader(path=self.filepath)
         return self
 
     def transform(self, x, y=None):
         series_name = x.name
-        _x = x.to_numpy().reshape(-1, 1)
-        _x = np.squeeze(self.scaler.fit_transform(_x))
-        _mean = self.scaler.mean_[0]
-        _var = self.scaler.var_[0]
-        _dict = dict(
-            {
-                f"{self.name}__mean": _mean,
-                f"{self.name}__var": _var,
-            }
-        )
-        self.writer.write(_dict)
-        return pd.Series(_x, name=series_name)
+        if self.isInference is True:
+            _param_dict = self.reader.read()
+            _mean = _param_dict[f"{self.name}__mean"]
+            _var = _param_dict[f"{self.name}__var"]
+            _x = x.apply(lambda v: (v - _mean) / _var)
+            return _x
+        if self.isInference is not True:
+            _x = x.to_numpy().reshape(-1, 1)
+            _x = np.squeeze(self.scaler.fit_transform(_x))
+            _mean = self.scaler.mean_[0]
+            _var = self.scaler.var_[0]
+            _dict = dict(
+                {
+                    f"{self.name}__mean": _mean,
+                    f"{self.name}__var": _var,
+                }
+            )
+            self.writer.write(_dict)
+            return pd.Series(_x, name=series_name)
+        return x
 
 
 class OrdinalEncoderAndStandardScalerTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, name=None, filepath=None):
+    def __init__(self, name=None, filepath=None, isInference=False):
         self.name = name
         self.filepath = filepath
+        self.isInference = isInference
 
     def fit(self, x, y=None):
         self.ordinal_encoder = OrdinalEncoder()
         self.scaler = StandardScaler()
         self.writer = ParamWriter(path=self.filepath)
+        self.reader = ParamReader(path=self.filepath)
         return self
 
     def transform(self, x, y=None):
         series_name = x.name
-        _x = x.to_numpy().reshape(-1, 1)
-        _x = self.ordinal_encoder.fit_transform(_x)
-        categories = self.ordinal_encoder.categories_
-        _encoding_dict = dict(zip((categories[0]), range(len(categories[0]))))
-        _x = np.squeeze(self.scaler.fit_transform(_x))
-        _mean = self.scaler.mean_[0]
-        _var = self.scaler.var_[0]
-        _dict = dict(
-            {
-                f"{self.name}__mean": _mean,
-                f"{self.name}__var": _var,
-                f"{self.name}__encodings": _encoding_dict,
-            }
-        )
-        self.writer.write(_dict)
-        return pd.Series(_x, name=series_name)
+        if self.isInference is True:
+            _param_dict = self.reader.read()
+            _mean = _param_dict[f"{self.name}__mean"]
+            _var = _param_dict[f"{self.name}__var"]
+            _encoding_dict = _param_dict[f"{self.name}__encodings"]
+            _x = x.apply(lambda v: _encoding_dict[v])
+            _x = _x.apply(lambda v: (v - _mean) / _var)
+            return _x
+        if self.isInference is not True:
+            _x = x.to_numpy().reshape(-1, 1)
+            _x = self.ordinal_encoder.fit_transform(_x)
+            categories = self.ordinal_encoder.categories_
+            _encoding_dict = dict(zip((categories[0]), range(len(categories[0]))))
+            _x = np.squeeze(self.scaler.fit_transform(_x))
+            _mean = self.scaler.mean_[0]
+            _var = self.scaler.var_[0]
+            _dict = dict(
+                {
+                    f"{self.name}__mean": _mean,
+                    f"{self.name}__var": _var,
+                    f"{self.name}__encodings": _encoding_dict,
+                }
+            )
+            self.writer.write(_dict)
+            return pd.Series(_x, name=series_name)
+        return x

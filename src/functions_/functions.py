@@ -37,6 +37,18 @@ class ParamWriter:
             f.close()
 
 
+class ParamReader:
+    def __init__(self, path):
+        self.path = path
+        self.param_dict = None
+
+    def read(self):
+        with open(self.path, "r", encoding="utf-8") as f:
+            self.param_dict = json.loads(f.read())
+            f.close()
+        return self.param_dict
+
+
 def get_matches_index_dict(matches_df, launches_df):
     index = launches_df["LAUNCHES_REC_ID"].apply(
         lambda x: matches_df[matches_df["LAUNCHES_REC_ID"] == x][
@@ -76,4 +88,31 @@ def get_triplet_index_dict():
             anchor_index.append(anchor)
             positive_index.append(positive)
             negative_index.append(negative)
+
+    # this returns NOTAM_REC_ID - not dataframe index
     return (anchor_index, positive_index, negative_index)
+
+
+def fromBuffer(byte_embeddings):
+    _embeddings = np.array(
+        [
+            np.frombuffer(byte_embeddings, dtype=np.float32)
+            for byte_embeddings in byte_embeddings
+        ]
+    ).astype(np.float32)
+    return _embeddings
+
+
+def inputNoneValues(df):
+    _df = copy.deepcopy(df)
+    _df["TEXT"] = _df["TEXT"].fillna("UNKNOWN")
+    _df["ISSUE_DATE"] = _df["ISSUE_DATE"].fillna(
+        _df["ISSUE_DATE"].value_counts().idxmax()
+    )
+    _df["POSSIBLE_START_DATE"] = _df["POSSIBLE_START_DATE"].fillna(
+        _df["POSSIBLE_START_DATE"].value_counts().idxmax()
+    )
+    _df["CLASSIFICATION"] = _df["CLASSIFICATION"].fillna("UNKNOWN")
+    _df["LOCATION_CODE"] = _df["LOCATION_CODE"].fillna("UNKNOWN")
+    _df["ACCOUNT_ID"] = _df["ACCOUNT_ID"].fillna("UNKNOWN")
+    return _df

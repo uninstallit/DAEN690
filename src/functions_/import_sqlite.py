@@ -30,7 +30,7 @@ def import_human_annotation_poor_matches_table(conn, file_name):
             lines = fn.readlines()
         print(f'count:{len(lines)}')
 
-        df = pd.read_csv(file_name,  encoding='latin-1', error_bad_lines=False, engine="python", sep='\t')
+        df = pd.read_csv(file_name,  encoding='latin-1', error_bad_lines=False, engine="python", sep='|')
         df.to_sql('human_poor_matches', conn, if_exists='replace', index = False)
         print(f'HumanPoorMatches {file_name} - original count:{len(lines)}, after process count:{df.shape[0]}. Ignored count: {len(lines)-df.shape[0]-1}')
     except:
@@ -143,6 +143,28 @@ def import_sample_data():
     import_notams_table(conn, '../../sample_data/NOTAM_sample.csv')
     conn.close()
 
+def fix_human_poor_matches_to_dilimeter_pipes():
+    data_dir = root + '/data/'
+    file_name = data_dir + 'HumanAnnotatedMatches_poormatches_SVO_DB_20201027_fixed_delimeter.csv'
+    
+    with open(file_name, 'r') as fn:
+        lines = fn.readlines()
+    print(len(lines))
+
+    new_lines = []
+    for line in lines:
+        new_line = line.replace(',', '|', 7)
+        new_lines.append(new_line)
+    print(f'new_lines:{len(lines)}')
+    
+    new_file = data_dir + "HumanAnnotatedMatches_poormatches_SVO_DB_20201027_pipes_noquotes.csv"
+    count = 0
+    with open(new_file, 'a') as file:
+        for line in new_lines:
+            file.write( line)
+            count +=1
+    print(f'wrote len:{count}')
+
 def import_svo_data():
     data_dir = root + '/data/'
     svo_db = root + '/data/svo_db_20201027.db'
@@ -155,7 +177,7 @@ def import_svo_data():
 
     conn = sqlite3.connect(svo_db)
     import_human_annotation_matches_table(conn, data_dir + 'HumanAnnotatedMatches_SVO_DB_20200127_pipes_noquotes.csv')
-    import_human_annotation_poor_matches_table(conn, data_dir + 'HumanAnnotatedMatches_poormatches_SVO_DB_20201027.csv')
+    import_human_annotation_poor_matches_table(conn, data_dir + 'HumanAnnotatedMatches_poormatches_SVO_DB_20201027_pipes_noquotes.csv')
     import_vertices_table(conn, data_dir +  'vertices_20220621.csv')
     import_polygon_table(conn, data_dir + 'polygon_20201027.csv')
     import_launches_table(conn, data_dir + 'launches_20201027.csv')
@@ -168,9 +190,10 @@ def import_svo_data():
     conn.close()
 
 def main():
+    #fix_human_poor_matches_to_dilimeter_pipes()
     #import_sample_data()
     import_svo_data()
-
+   
 if __name__ == "__main__":
     main()
 

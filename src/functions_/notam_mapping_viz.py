@@ -13,11 +13,18 @@ from geopandas import GeoDataFrame
 import matplotlib.pyplot as plt
 import plotly.express as px
 
-my_connect = sqlite3.Connection('svo_db_20201027.db')
+import sys
+import os
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+root = os.path.dirname(parent)
+my_connect = sqlite3.Connection('./data/svo_db_20201027.db')
 my_cursor = my_connect.cursor()
 
 # centriods = my_cursor.execute("SELECT t1.NOTAM_REC_ID, t1.LATITUDE, t1.LONGITUDE, t1.RADIUS_NM, t2.CLASSIFICATION FROM notam_centroids AS t1 CROSS JOIN notams AS t2 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND LATITUDE < 80 AND LATITUDE > 10 AND LONGITUDE < -50 AND LONGITUDE > -180 LIMIT 250000").fetchall()
-centriods = my_cursor.execute("SELECT t1.NOTAM_REC_ID, t1.LATITUDE, t1.LONGITUDE, t1.RADIUS_NM, t2.CLASSIFICATION FROM notam_centroids AS t1 CROSS JOIN notams AS t2 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND LATITUDE < 90 AND LATITUDE > -90 AND LONGITUDE < 180 AND LONGITUDE > -180 LIMIT 250000").fetchall()
+centriods = my_cursor.execute("SELECT t1.NOTAM_REC_ID, t1.LATITUDE, t1.LONGITUDE, t1.RADIUS_NM, t2.CLASSIFICATION FROM notam_centroids AS t1 CROSS JOIN notams AS t2 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND LATITUDE < 90 AND LATITUDE > -90 AND LONGITUDE < 180 AND LONGITUDE > -180 LIMIT 2500").fetchall()
 # print(centriods)
 # print(len(centriods))
 

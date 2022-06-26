@@ -131,6 +131,7 @@ def make_notam_centroids_from_location_code_FDC(conn, cursor):
     print('make_notam_centroids_from_location_code_FDC')
     # FDC FAA 800 Independence Avenue, SW, Washington, DC 20591
     # 38.886924937762174, -77.02280003895204
+    # default FDC location lat/lon
     LAT = 38.886925
     LON = -77.022800
     RADIUS = 0

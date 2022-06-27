@@ -1,10 +1,10 @@
 {
-    "start_date__mean": 1522723067.0433567,
-    "start_date__var": 1183788875501892.2,
-    "issue_date__mean": 1522605604.8175852,
-    "issue_date__var": 1176916013951992.0,
-    "location_code__mean": 9075.840068470732,
-    "location_code__var": 16754138.81783027,
+    "start_date__min": 942757200.0,
+    "start_date__max": 2117714400.0,
+    "issue_date__min": 943995600.0,
+    "issue_date__max": 1590943920.0,
+    "location_code__min": 0.0,
+    "location_code__max": 14399.0,
     "location_code__encodings": {
         "00A": 0,
         "00C": 1,
@@ -14407,8 +14407,8 @@
         "ZZV": 14398,
         "ZZZ": 14399
     },
-    "classification__mean": 1.3695273725326655,
-    "classification__var": 1.6939238456371184,
+    "classification__min": 0.0,
+    "classification__max": 5.0,
     "classification__encodings": {
         "DOM": 0,
         "FDC": 1,
@@ -14417,8 +14417,8 @@
         "MIL": 4,
         "UNKNOWN": 5
     },
-    "account_id__mean": 1565.58270071453,
-    "account_id__var": 718592.1721100853,
+    "account_id__min": 0.0,
+    "account_id__max": 2800.0,
     "account_id__encodings": {
         "04V": 0,
         "0E0": 1,

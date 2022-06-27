@@ -60,12 +60,12 @@ def main():
 
     classes = notam_df["CLASSIFICATION"].unique().tolist()
 
-    clean_text = clean_column_text_pipeline("TEXT").fit_transform(notam_df)
+    clean_text = clean_column_text_pipeline("E_CODE").fit_transform(notam_df)
     clean_text = np.squeeze(clean_text, axis=1)
-    notam_df["TEXT"] = clean_text
+    notam_df["E_CODE"] = clean_text
 
     tfidf_vectorizer = TfidfVectorizer(min_df=5, stop_words="english")
-    tfidf_word_doc_matrix = tfidf_vectorizer.fit_transform(notam_df["TEXT"].tolist())
+    tfidf_word_doc_matrix = tfidf_vectorizer.fit_transform(notam_df["E_CODE"].tolist())
     tfidf_embedding = umap.UMAP(metric="hellinger", n_neighbors=15).fit(
         tfidf_word_doc_matrix
     )

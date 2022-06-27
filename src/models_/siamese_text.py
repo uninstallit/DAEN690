@@ -15,7 +15,8 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(root)
 
-from functions_.functions import get_triplet_index_dict
+from functions_.functions import fromBuffer
+
 
 # source: https://keras.io/examples/vision/siamese_network/
 
@@ -108,28 +109,20 @@ def get_siamese_network(input_shape, base_model):
 
 def main():
 
-    input_shape = (384, 1)
-    base_network = get_base_network(input_shape)
-    siamese_network = get_siamese_network(input_shape, base_network)
+    anchor_data = np.load("./data/anchor_data.npy", allow_pickle=True)
+    positive_data = np.load("./data/positive_data.npy", allow_pickle=True)
+    negative_data = np.load("./data/negative_data.npy", allow_pickle=True)
 
-    (anchor_index, positive_index, negative_index) = get_triplet_index_dict()
-    notams_embeddings = np.load("./data/notams_embeddings.npy", allow_pickle=True)
-    anchor_embeddings = np.expand_dims(
-        np.take(notams_embeddings, anchor_index, axis=0), -1
-    )
-    positive_embeddings = np.expand_dims(
-        np.take(notams_embeddings, positive_index, axis=0), -1
-    )
-    negative_embeddings = np.expand_dims(
-        np.take(notams_embeddings, negative_index, axis=0), -1
-    )
+    anchor_embeddings = np.expand_dims(fromBuffer(anchor_data[:, 8]), -1)
+    positive_embeddings = np.expand_dims(fromBuffer(positive_data[:, 8]), -1)
+    negative_embeddings = np.expand_dims(fromBuffer(negative_data[:, 8]), -1)
 
-    anchor_dataset = tf.data.Dataset.from_tensor_slices(anchor_embeddings)
-    positive_dataset = tf.data.Dataset.from_tensor_slices(positive_embeddings)
-    negative_dataset = tf.data.Dataset.from_tensor_slices(negative_embeddings)
+    anchor_embd_dataset = tf.data.Dataset.from_tensor_slices(anchor_embeddings)
+    positive_embd_dataset = tf.data.Dataset.from_tensor_slices(positive_embeddings)
+    negative_embd_dataset = tf.data.Dataset.from_tensor_slices(negative_embeddings)
 
-    dataset = tf.data.Dataset.zip((anchor_dataset, positive_dataset, negative_dataset))
-    dataset = dataset.shuffle(buffer_size=1024)
+    dataset = tf.data.Dataset.zip((anchor_embd_dataset, positive_embd_dataset, negative_embd_dataset))
+    dataset = dataset.shuffle(buffer_size=4096)
 
     train_dataset = dataset.take(round(len(anchor_embeddings) * 0.8))
     val_dataset = dataset.skip(round(len(anchor_embeddings) * 0.8))
@@ -139,6 +132,10 @@ def main():
 
     val_dataset = val_dataset.batch(32, drop_remainder=False)
     val_dataset = val_dataset.prefetch(tf.data.AUTOTUNE)
+
+    input_shape = (384, 1)
+    base_network = get_base_network(input_shape)
+    siamese_network = get_siamese_network(input_shape, base_network)
 
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001), weighted_metrics=[])

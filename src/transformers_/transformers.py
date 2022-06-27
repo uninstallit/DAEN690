@@ -10,6 +10,7 @@ from sklearn.preprocessing import (
     LabelEncoder,
     OrdinalEncoder,
     StandardScaler,
+    MinMaxScaler,
 )
 from sklearn.impute import SimpleImputer
 from sentence_transformers import SentenceTransformer
@@ -313,6 +314,85 @@ class OrdinalEncoderAndStandardScalerTransformer(BaseEstimator, TransformerMixin
                 {
                     f"{self.name}__mean": _mean,
                     f"{self.name}__var": _var,
+                    f"{self.name}__encodings": _encoding_dict,
+                }
+            )
+            self.writer.write(_dict)
+            return pd.Series(_x, name=series_name)
+        return x
+
+
+class MinMaxScalerTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, name=None, filepath=None, isInference=False):
+        self.name = name
+        self.filepath = filepath
+        self.isInference = isInference
+
+    def fit(self, x, y=None):
+        self.scaler = MinMaxScaler()
+        self.writer = ParamWriter(path=self.filepath)
+        self.reader = ParamReader(path=self.filepath)
+        return self
+
+    def transform(self, x, y=None):
+        series_name = x.name
+        if self.isInference is True:
+            _param_dict = self.reader.read()
+            _min = _param_dict[f"{self.name}__min"]
+            _max = _param_dict[f"{self.name}__max"]
+            _x = x.apply(lambda v: ((v - _min) / (_max - _min)))
+            return _x
+        if self.isInference is not True:
+            _x = x.to_numpy().reshape(-1, 1)
+            _x = np.squeeze(self.scaler.fit_transform(_x))
+            _min = self.scaler.data_min_[0]
+            _max = self.scaler.data_max_[0]
+            _dict = dict(
+                {
+                    f"{self.name}__min": _min,
+                    f"{self.name}__max": _max,
+                }
+            )
+            self.writer.write(_dict)
+            return pd.Series(_x, name=series_name)
+        return x
+
+
+class OrdinalEncoderAndMinMaxScalerTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, name=None, filepath=None, isInference=False):
+        self.name = name
+        self.filepath = filepath
+        self.isInference = isInference
+
+    def fit(self, x, y=None):
+        self.ordinal_encoder = OrdinalEncoder()
+        self.scaler = MinMaxScaler()
+        self.writer = ParamWriter(path=self.filepath)
+        self.reader = ParamReader(path=self.filepath)
+        return self
+
+    def transform(self, x, y=None):
+        series_name = x.name
+        if self.isInference is True:
+            _param_dict = self.reader.read()
+            _min = _param_dict[f"{self.name}__min"]
+            _max = _param_dict[f"{self.name}__max"]
+            _encoding_dict = _param_dict[f"{self.name}__encodings"]
+            _x = x.apply(lambda v: _encoding_dict[v])
+            _x = _x.apply(lambda v: ((v - _min) / (_max - _min)))
+            return _x
+        if self.isInference is not True:
+            _x = x.to_numpy().reshape(-1, 1)
+            _x = self.ordinal_encoder.fit_transform(_x)
+            categories = self.ordinal_encoder.categories_
+            _encoding_dict = dict(zip((categories[0]), range(len(categories[0]))))
+            _x = np.squeeze(self.scaler.fit_transform(_x))
+            _min = self.scaler.data_min_[0]
+            _max = self.scaler.data_max_[0]
+            _dict = dict(
+                {
+                    f"{self.name}__min": _min,
+                    f"{self.name}__max": _max,
                     f"{self.name}__encodings": _encoding_dict,
                 }
             )

@@ -2,6 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sqlite3
 import seaborn as sns
+import datetime
+
 
 import sys
 import os
@@ -78,13 +80,28 @@ def plot_notam_missing_polygons(cursor):
     fig.tight_layout()
     plt.show()
  
+def plot_launch_data(conn,  cursor):
+    sql = """ select LAUNCHES_REC_ID, LAUNCH_DATE from launches """
+    launches_df = pd.read_sql_query(sql, conn)
+
+    # reformat Launch datetime format 2013-01-26 22:00:00 to Year 2013
+    launches_df['LAUNCH_YEAR'] = [ datetime.datetime.strptime(x, "%Y-%m-%d %H:%M:%S").strftime("%Y") for x in launches_df['LAUNCH_DATE'] ]
+
+    fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(8, 5))
+    sns.countplot(data= launches_df, x='LAUNCH_YEAR', ax=ax1)
+    ax1.set_title('LAUNCHES by YEAR')
+    ax1.set_ylabel('Count')
+    ax1.set_xlabel('LAUNCHES')
+    fig.tight_layout()
+    plt.show()
 
 def main():
     conn = sqlite3.Connection("./data/svo_db_20201027.db")
     cursor = conn.cursor()
     
     #plot_notam_data(cursor)
-    plot_notam_missing_polygons(cursor)
+    #plot_notam_missing_polygons(cursor)
+    plot_launch_data(conn,  cursor)
     
     conn.close()
     

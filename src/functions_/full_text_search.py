@@ -40,33 +40,41 @@ def create_virtual_full_text_search_notam_table(conn, cursor):
     return (conn_v, cur_v)
 
 
-def match_launch(conn_v, cur_v, launch_time, possible_end_time):
-    print(f'match  dlaunch_time:{launch_time}')
+def find_negative_notams(conn_v, cur_v, launch_rec_id, launch_time):
 
     search = exclusion_words
    
     #    |2days-------Possible_start_time---|launch_time|------Possible_end_time------2days|
     sql = """ SELECT NOTAM_REC_ID,  POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE FROM virtual_notams  
-                WHERE (DATETIME(POSSIBLE_START_DATE) <= DATETIME('{launch_date}') AND DATETIME(POSSIBLE_START_DATE) > DATETIME('{launch_date}', '-2 days'))
-                and (DATETIME(POSSIBLE_END_DATE) > DATETIME('{launch_date}') AND DATETIME(POSSIBLE_END_DATE) < DATETIME('{launch_date}', '+2 days'))
+                WHERE (DATETIME(POSSIBLE_START_DATE) <= DATETIME('{launch_date}') AND DATETIME(POSSIBLE_START_DATE) > DATETIME('{launch_date}', '-1 days'))
+                and (DATETIME(POSSIBLE_END_DATE) > DATETIME('{launch_date}') AND DATETIME(POSSIBLE_END_DATE) < DATETIME('{launch_date}', '+1 days'))
                 and (E_CODE not null or TEXT not null) 
                 and (E_CODE MATCH "{q}" or TEXT MATCH "{q}") """
 
-    sql1 = sql.format(launch_date=launch_time, poss_end_date=possible_end_time, q=search)
-    virt_notams_df = pd.read_sql_query(sql1, conn_v)
-    print(f'Found matching notams len:{len(virt_notams_df)}')
-    print(virt_notams_df.head(5))
+    sql1 = sql.format(launch_date=launch_time, q=search)
+    neg_notams_df = pd.read_sql_query(sql1, conn_v)
+    print(f'launch_rec_id:{launch_rec_id}, launch_time:{launch_time} - Found neg notams len:{len(neg_notams_df)}')
+    
+    if len(neg_notams_df):
+        neg_notams_df['LAUNCHES_REC_ID'] = launch_rec_id
+        neg_notams_df['LAUNCH_DATE'] = launch_time
+
+    return  neg_notams_df
     
 def main():
     conn = sqlite3.Connection("./data/svo_db_20201027.db")
     cursor = conn.cursor()
     (conn_v, cur_v) = create_virtual_full_text_search_notam_table(conn, cursor)
 
-    launch_rec_id = 391
-    launch_time = '2018-04-02 20:30:38'
-    possible_end_time = '2018-04-02 21:08:00'
-    match_launch(conn_v, cur_v, launch_time, possible_end_time)
-
+    sql = """ select LAUNCHES_REC_ID, LAUNCH_DATE from launches where LAUNCHES_REC_ID = 518 """
+    launch_df = pd.read_sql_query(sql, conn)
+    
+    for index, row in launch_df.iterrows():
+        launch_rec_id, launch_date = row['LAUNCHES_REC_ID'], row['LAUNCH_DATE']
+        neg_notams_df =  find_negative_notams(conn_v, cur_v, launch_rec_id, launch_date)
+        if len(neg_notams_df):
+            print(neg_notams_df)
+    
     conn.close()
 
 if __name__ == "__main__":

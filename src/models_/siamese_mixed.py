@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-from torch import embedding
-
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 current = os.path.dirname(os.path.realpath(__file__))
@@ -17,7 +15,7 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(root)
 
-from functions_.functions import get_triplet_index_dict
+from functions_.functions import fromBuffer
 
 
 class SiameseModel(tf.keras.Model):
@@ -81,25 +79,28 @@ def get_base_network(mixed_input_shape, embedding_input_shape):
 
     # mixed data
     mixed_inputs = tf.keras.Input(shape=mixed_input_shape, name="mixed")
-    x = tf.keras.layers.Dense(128, activation="relu")(mixed_inputs)
+    x = tf.keras.layers.Dense(384, activation="relu")(mixed_inputs)
     x = tf.keras.layers.Dropout(0.2)(x)
-    x = tf.keras.layers.Dense(64, activation="relu")(x)
+    x = tf.keras.layers.Dense(128, activation="relu")(x)
     x = tf.keras.layers.Dropout(0.2)(x)
-    mixed_outputs = tf.keras.layers.Dense(128, activation="relu")(x)
+    mixed_outputs = tf.keras.layers.Dense(384, activation="sigmoid")(x)
 
     # embeddings
     embedding_inputs = tf.keras.Input(shape=embedding_input_shape, name="text")
-    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True))(
+    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128, return_sequences=True))(
         embedding_inputs
     )
-    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64))(x)
-    embedding_outputs = tf.keras.layers.Dense(128, activation="relu")(x)
+    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128))(x)
+    embedding_outputs = tf.keras.layers.Dense(384, activation="sigmoid")(x)
+    # embedding_outputs = tf.keras.layers.Flatten()(embedding_inputs)
 
     # combine branches
     concat = tf.keras.layers.concatenate([mixed_outputs, embedding_outputs])
-    x = tf.keras.layers.Dense(128, activation="relu")(concat)
-    x = tf.keras.layers.Dropout(0.2)(x)
-    outputs = tf.keras.layers.Dense(128, activation="linear")(x)
+    x = tf.keras.layers.Dense(384, activation="relu")(concat)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Dense(384, activation="relu")(concat)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    outputs = tf.keras.layers.Dense(384, activation="sigmoid")(x)
 
     # mixed model
     base_model = tf.keras.Model(
@@ -152,16 +153,6 @@ def get_siamese_network(inputs_shape, base_model):
     return siamese_network
 
 
-def fromBuffer(byte_embeddings):
-    _embeddings = np.array(
-        [
-            np.frombuffer(byte_embeddings, dtype=np.float32)
-            for byte_embeddings in byte_embeddings
-        ]
-    ).astype(np.float32)
-    return _embeddings
-
-
 def main():
 
     anchor_data = np.load("./data/anchor_data.npy", allow_pickle=True)
@@ -195,11 +186,11 @@ def main():
             negative_embd_dataset,
         )
     )
-    dataset = dataset.shuffle(buffer_size=4096)
+    # dataset = dataset.shuffle(buffer_size=1024)
     assert len(anchor_data) == len(anchor_embeddings)
 
-    train_dataset = dataset.take(round(len(anchor_data) * 0.80))
-    val_dataset = dataset.skip(round(len(anchor_data) * 0.20))
+    train_dataset = dataset.take(round(len(anchor_data) * 0.75))
+    val_dataset = dataset.skip(round(len(anchor_data) * 0.75))
 
     train_dataset = train_dataset.batch(32, drop_remainder=False)
     train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
@@ -217,9 +208,9 @@ def main():
 
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
-    history = siamese_model.fit(train_dataset, epochs=55, validation_data=val_dataset)
+    history = siamese_model.fit(train_dataset, epochs=100, validation_data=val_dataset)
 
-    base_network.save(root + "/src/saved_models_/test_model")
+    base_network.save(root + "/src/saved_models_/sm3_model")
 
     # *** inference ***
 

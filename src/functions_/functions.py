@@ -8,7 +8,6 @@ import copy
 import random
 import matplotlib.pyplot as plt
 from itertools import permutations
-from sklearn.preprocessing import LabelEncoder
 
 import sys
 import os
@@ -49,30 +48,26 @@ class ParamReader:
         return self.param_dict
 
 
-def get_matches_index_dict(matches_df, launches_df):
-    index = launches_df["LAUNCHES_REC_ID"].apply(
-        lambda x: matches_df[matches_df["LAUNCHES_REC_ID"] == x][
-            "NOTAM_REC_ID"
-        ].tolist()
-    )
-    index_dict = dict(
-        (key, val) for (key, val) in index.to_dict().items() if len(val) != 0
-    )
-    return index_dict
+def get_matches_index_dict(matches_df):
+    matches_dict = (
+        matches_df[["LAUNCHES_REC_ID", "NOTAM_REC_ID"]]
+        .groupby("LAUNCHES_REC_ID")
+        .agg(lambda x: list(x))
+        .to_dict()
+    )["NOTAM_REC_ID"]
+    return matches_dict
 
 
 def get_triplet_index_dict():
     conn = sqlite3.Connection(root + "/data/svo_db_20201027.db")
     sql = """ SELECT * FROM human_matches"""
     matches_df = pd.read_sql_query(sql, conn)
-    sql = """ SELECT * FROM launches"""
-    launches_df = pd.read_sql_query(sql, conn)
     conn.close()
 
     anchor_index = []
     positive_index = []
     negative_index = []
-    matches_dict = get_matches_index_dict(matches_df, launches_df)
+    matches_dict = get_matches_index_dict(matches_df)
     matches_dict_keys = list(matches_dict.keys())
 
     for key, values in matches_dict.items():
@@ -105,7 +100,7 @@ def fromBuffer(byte_embeddings):
 
 def inputNoneValues(df):
     _df = copy.deepcopy(df)
-    _df["TEXT"] = _df["TEXT"].fillna("UNKNOWN")
+    _df["E_CODE"] = _df["E_CODE"].fillna("UNKNOWN")
     _df["ISSUE_DATE"] = _df["ISSUE_DATE"].fillna(
         _df["ISSUE_DATE"].value_counts().idxmax()
     )
@@ -116,3 +111,13 @@ def inputNoneValues(df):
     _df["LOCATION_CODE"] = _df["LOCATION_CODE"].fillna("UNKNOWN")
     _df["ACCOUNT_ID"] = _df["ACCOUNT_ID"].fillna("UNKNOWN")
     return _df
+
+
+def fromBuffer(byte_embeddings):
+    _embeddings = np.array(
+        [
+            np.frombuffer(byte_embeddings, dtype=np.float32)
+            for byte_embeddings in byte_embeddings
+        ]
+    ).astype(np.float32)
+    return _embeddings

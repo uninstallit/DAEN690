@@ -31,7 +31,7 @@ def main():
     conn.close()
 
     # fill out none values for selected features
-    notams_df["TEXT"] = notams_df["TEXT"].fillna("UNKNOWN")
+    notams_df["E_CODE"] = notams_df["TEXT"].fillna("UNKNOWN")
     notams_df["ISSUE_DATE"] = notams_df["ISSUE_DATE"].fillna(
         notams_df["ISSUE_DATE"].value_counts().idxmax()
     )
@@ -86,9 +86,9 @@ def main():
     positive_data = positive_data[:min_length]
     negative_data = negative_data[:min_length]
 
-    # print(anchor_data.shape)
-    # print(positive_data.shape)
-    # print(negative_data.shape)
+    print(anchor_data.shape)
+    print(positive_data.shape)
+    print(negative_data.shape)
 
     # save data to file
     np.save("./data/anchor_data", anchor_data)

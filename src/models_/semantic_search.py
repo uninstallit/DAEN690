@@ -31,7 +31,7 @@ embedder = SentenceTransformer("all-MiniLM-L6-v2")
 def semantic_search_similar_notams(corpus_df, queries_df):
     print(f"semantic_search")
 
-    corpus = corpus_df["TEXT"].to_numpy()
+    corpus = corpus_df["E_CODE"].to_numpy()
     notam_rec_ids = corpus_df["NOTAM_REC_ID"].to_numpy()
     corpus_embeddings = embedder.encode(corpus, convert_to_tensor=True)
 

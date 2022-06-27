@@ -27,6 +27,8 @@ from transformers_.transformers import (
     StandardScalerTransformer,
     OrdinalEncoderAndStandardScalerTransformer,
     SentenceEmbedderTransformer,
+    MinMaxScalerTransformer,
+    OrdinalEncoderAndMinMaxScalerTransformer,
 )
 
 
@@ -52,7 +54,7 @@ location_code_pipeline = Pipeline(
     [
         (
             "location_code_normalize",
-            OrdinalEncoderAndStandardScalerTransformer(
+            OrdinalEncoderAndMinMaxScalerTransformer(
                 name="location_code", filepath=params_path
             ),
         ),
@@ -64,7 +66,7 @@ account_id_pipeline = Pipeline(
     [
         (
             "account_id_normalize",
-            OrdinalEncoderAndStandardScalerTransformer(
+            OrdinalEncoderAndMinMaxScalerTransformer(
                 name="account_id", filepath=params_path
             ),
         ),
@@ -77,7 +79,7 @@ start_date_pipeline = Pipeline(
         ("start_date_unix_time", NotamDateToUnixTimeTransformer()),
         (
             "start_date_normalize",
-            StandardScalerTransformer(name="start_date", filepath=params_path),
+            MinMaxScalerTransformer(name="start_date", filepath=params_path),
         ),
         ("start_date_to_dataframe", SeriesToDataframeTransformer()),
     ]
@@ -88,7 +90,7 @@ issue_date_pipeline = Pipeline(
         ("issue_date_unix_time", NotamDateToUnixTimeTransformer()),
         (
             "issue_date_normalize",
-            StandardScalerTransformer(name="issue_date", filepath=params_path),
+            MinMaxScalerTransformer(name="issue_date", filepath=params_path),
         ),
         ("issue_date_to_dataframe", SeriesToDataframeTransformer()),
     ]
@@ -98,7 +100,7 @@ classification_pipeline = Pipeline(
     [
         (
             "classification_normalize",
-            OrdinalEncoderAndStandardScalerTransformer(
+            OrdinalEncoderAndMinMaxScalerTransformer(
                 name="classification", filepath=params_path
             ),
         ),
@@ -114,7 +116,7 @@ preprocess_pipeline = Pipeline(
             ColumnTransformer(
                 [
                     ("idx_0", SeriesToDataframeTransformer(), "NOTAM_REC_ID"),
-                    ("idx_1", clean_text_pipeline, "TEXT"),
+                    ("idx_1", clean_text_pipeline, "E_CODE"),
                     ("idx_2", start_date_pipeline, "POSSIBLE_START_DATE"),
                     ("idx_3", issue_date_pipeline, "ISSUE_DATE"),
                     ("idx_4", location_code_pipeline, "LOCATION_CODE"),

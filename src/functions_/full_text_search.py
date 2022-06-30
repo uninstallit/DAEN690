@@ -12,7 +12,7 @@ root = os.path.dirname(parent)
 
 exclusion_words = """ obst* OR fire OR unmanned OR crane OR uas OR aerial OR drill OR installed OR 
                             terminal OR parking OR rwy OR taxi OR twy OR hangar OR chemical OR pavement OR 
-                            firing OR out* OR volcan OR turbine OR flare OR wx OR weather OR 
+                            firing OR "out of service" OR volcan OR turbine OR flare OR wx OR weather OR 
                             aerodrome OR apron OR tower OR hospital OR covid OR medical OR copter OR 
                             disabled OR passenger OR passanger OR arctic OR artic OR defense OR defence OR 
                             helipad OR bird  OR laser  OR heliport OR ordnance OR decommisioned OR decomissioned OR 
@@ -21,6 +21,9 @@ exclusion_words = """ obst* OR fire OR unmanned OR crane OR uas OR aerial OR dri
                             glide OR tcas OR accident OR investigation OR training OR 
                             approach OR explosion OR explosive OR demolitions """
 
+inclusionwords = """ launch OR space  OR 91.143 OR "ATTENTION AIRLINE DISPATCHERS" OR "HAZARD AREA" OR
+                            "STNR ALT" OR "STNR ALTITUDE" OR "STATIONARY ALT" OR
+                            "TEMPORARY FLIGHT RESTRICTION" """
 
 def create_virtual_full_text_search_notam_table(conn, cursor):
     print('create_virtual_notam_table')
@@ -29,7 +32,8 @@ def create_virtual_full_text_search_notam_table(conn, cursor):
     sql = f'select {cols} from notams '
     notams_df = pd.read_sql_query(sql, conn)
 
-    # clean text first
+    # TODO  clean text before inserting to the virtual table
+
     #create virtual table
     conn_v = sqlite3.connect(':memory:')
     cur_v = conn_v.cursor()
@@ -40,14 +44,15 @@ def create_virtual_full_text_search_notam_table(conn, cursor):
     return (conn_v, cur_v)
 
 
-def find_negative_notams(conn_v, cur_v, launch_rec_id, launch_time):
+def create_negative_notams_dataset(conn_v, cur_v, launch_rec_id, launch_time):
 
     search = exclusion_words
    
     #    |2days-------Possible_start_time---|launch_time|------Possible_end_time------2days|
-    sql = """ SELECT NOTAM_REC_ID,  POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE FROM virtual_notams  
+    sql = """ SELECT NOTAM_REC_ID,  POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, LOCATION_NAME, E_CODE FROM virtual_notams  
                 WHERE (DATETIME(POSSIBLE_START_DATE) <= DATETIME('{launch_date}') AND DATETIME(POSSIBLE_START_DATE) > DATETIME('{launch_date}', '-1 days'))
                 and (DATETIME(POSSIBLE_END_DATE) > DATETIME('{launch_date}') AND DATETIME(POSSIBLE_END_DATE) < DATETIME('{launch_date}', '+1 days'))
+                and (LOCATION_CODE like 'Z%' or LOCATION_CODE like 'K%' or LOCATION_NAME like '%ARTCC%')
                 and (E_CODE not null or TEXT not null) 
                 and (E_CODE MATCH "{q}" or TEXT MATCH "{q}") """
 
@@ -66,15 +71,22 @@ def main():
     cursor = conn.cursor()
     (conn_v, cur_v) = create_virtual_full_text_search_notam_table(conn, cursor)
 
-    sql = """ select LAUNCHES_REC_ID, LAUNCH_DATE from launches where LAUNCHES_REC_ID = 518 """
+    sql = """ select LAUNCHES_REC_ID, LAUNCH_DATE from launches  """
     launch_df = pd.read_sql_query(sql, conn)
-    
+
+    frames = []
     for index, row in launch_df.iterrows():
         launch_rec_id, launch_date = row['LAUNCHES_REC_ID'], row['LAUNCH_DATE']
-        neg_notams_df =  find_negative_notams(conn_v, cur_v, launch_rec_id, launch_date)
+        neg_notams_df =  create_negative_notams_dataset(conn_v, cur_v, launch_rec_id, launch_date)
         if len(neg_notams_df):
-            print(neg_notams_df)
-    
+            frames.append(neg_notams_df)
+
+    final_neg_notams_df = pd.concat(frames)
+    print(f'final_neg_notams_df len: {len(final_neg_notams_df)}')
+    print(final_neg_notams_df.head(100))
+
+    # final_neg_notams_df.to_csv("./data/neg_notams_usa.csv", index=False)
+
     conn.close()
 
 if __name__ == "__main__":

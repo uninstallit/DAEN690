@@ -71,10 +71,13 @@ class DistanceLayer(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.loss = tf.keras.losses.CosineSimilarity(axis=-1)
 
     def call(self, anchor, positive, negative):
-        ap_distance = tf.reduce_sum(tf.square(anchor - positive), -1)
-        an_distance = tf.reduce_sum(tf.square(anchor - negative), -1)
+        # ap_distance = tf.reduce_sum(tf.square(anchor - positive), -1)
+        # an_distance = tf.reduce_sum(tf.square(anchor - negative), -1)
+        ap_distance = tf.math.square(self.loss(anchor, positive))
+        an_distance = tf.math.square(self.loss(anchor, negative))
         return (ap_distance, an_distance)
 
 
@@ -124,8 +127,8 @@ def main():
     dataset = tf.data.Dataset.zip((anchor_embd_dataset, positive_embd_dataset, negative_embd_dataset))
     dataset = dataset.shuffle(buffer_size=4096)
 
-    train_dataset = dataset.take(round(len(anchor_embeddings) * 0.8))
-    val_dataset = dataset.skip(round(len(anchor_embeddings) * 0.8))
+    train_dataset = dataset.take(round(len(anchor_embeddings) * 0.75))
+    val_dataset = dataset.skip(round(len(anchor_embeddings) * 0.75))
 
     train_dataset = train_dataset.batch(32, drop_remainder=False)
     train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
@@ -140,6 +143,8 @@ def main():
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001), weighted_metrics=[])
     history = siamese_model.fit(train_dataset, epochs=30, validation_data=val_dataset)
+
+    base_network.save(root + "/src/saved_models_/sm2_model")
 
     # *** inference ***
 

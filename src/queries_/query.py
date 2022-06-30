@@ -54,23 +54,21 @@ def main():
     sql = """ SELECT * FROM notams 
         LEFT JOIN notam_centroids 
         USING(NOTAM_REC_ID) 
-        WHERE DATETIME(notams.POSSIBLE_START_DATE) >= DATETIME(\"{start}\", '-0 day') 
-        AND DATETIME(notams.POSSIBLE_START_DATE) <= DATETIME(\"{start}\", '+0 day') 
-        AND DATETIME(notams.POSSIBLE_END_DATE) >= DATETIME(\"{end}\", '-0 day') 
-        AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+0 day'); """.format(
+        WHERE DATETIME(notams.POSSIBLE_START_DATE) >= DATETIME(\"{start}\", '-1 day') 
+        AND DATETIME(notams.POSSIBLE_START_DATE) <= DATETIME(\"{start}\", '+1 day') 
+        AND DATETIME(notams.POSSIBLE_END_DATE) >= DATETIME(\"{end}\", '-1 day') 
+        AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+1 day'); """.format(
         start=start_date, end=end_date
     )
     query_df = pd.read_sql_query(sql, conn)
     conn.close()
 
-    print(notams_df.isna().sum())
+    query_df = query_df[query_df["LATITUDE"].notna()]
+    query_df = query_df[query_df["LONGITUDE"].notna()]
 
     query_ids = query_df["NOTAM_REC_ID"].tolist()
     if len(query_ids) == 0:
         raise RuntimeError("Notam query is empty!")
-
-    query_df = query_df[query_df["LATITUDE"].notna()]
-    query_df = query_df[query_df["LONGITUDE"].notna()]
 
     notam_centroid_df = centroid_df[centroid_df["NOTAM_REC_ID"] == notam_id]
     notam_df = pd.merge(notam_df, notam_centroid_df)
@@ -122,23 +120,48 @@ def main():
     query_embeddings = fromBuffer(query_data[:, 8])
     query_data = query_data[:, 2:-1].astype("float32")
 
-    base_network = tf.keras.models.load_model(root + "/src/saved_models_/sm3_model")
+    base_network = tf.keras.models.load_model(root + "/src/saved_models_/sm1_model")
 
-    selected = []
-    for idx in range(0, len(query_df.index)):
+    cosine_similarity = tf.keras.metrics.CosineSimilarity()
+    anch_prediction = base_network.predict([notam_data, notam_embeddings])
+    # anch_prediction = base_network.predict(notam_embeddings)
+
+    ss_selected = []
+    for idx, notam_rec_id in enumerate(query_ids):
+        cosine_similarity.reset_state()
+        cosine_similarity.update_state(notam_embeddings, query_embeddings[idx])
+        similarity = cosine_similarity.result().numpy()
+        ss_selected.append((query_ids[idx], similarity))
+
+    ss_selected = sorted(ss_selected, key=lambda x: x[1], reverse=True)[:10]
+
+    ms_selected = []
+    for idx, notam_rec_id in enumerate(query_ids):
         _query_data = np.expand_dims(query_data[idx], 0)
         _query_embd = np.expand_dims(query_embeddings[idx], axis=(0, -1))
-        anch_prediction = base_network.predict([notam_data, notam_embeddings])
         other_prediction = base_network.predict([_query_data, _query_embd])
-        cosine_similarity = tf.keras.metrics.CosineSimilarity()
-        similarity = cosine_similarity(anch_prediction, other_prediction)
+        # other_prediction = base_network.predict(_query_embd)
+        cosine_similarity.reset_state()
+        cosine_similarity.update_state(anch_prediction, other_prediction)
+        similarity = cosine_similarity.result().numpy()
+        ms_selected.append((query_ids[idx], similarity))
 
-        if similarity >= 0.98:
-            selected.append((query_ids[idx], similarity.numpy()))
+    ms_selected = sorted(ms_selected, key=lambda x: x[1], reverse=False)[:10]
+    
+    print("\nSemantic Search")
+    for notam_rec_id, similarity in ss_selected:
+        print("\nSemantic Search")
+        print(f"Notam id: {notam_rec_id} - cos score: {similarity}")
 
-    selected = sorted(selected, key=lambda x: x[1], reverse=True)[:10]
-    print([i for i, s in selected])
-    print("Total selected  queries: ", len(selected))
+    print("\nModel Score")
+    for notam_rec_id, similarity in ms_selected:
+        print("\nModel Score")
+        print(f"Notam id: {notam_rec_id} - cos score: {similarity}")
+
+    print("\nSemantic Search")
+    print([i for i, s in ss_selected])
+    print("\nModel Score")
+    print([i for i, s in ms_selected])
 
 
 if __name__ == "__main__":

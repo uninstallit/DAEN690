@@ -1,12 +1,11 @@
-from ast import Param
 import sqlite3
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import json
 import copy
 import random
 import matplotlib.pyplot as plt
+from numpy import genfromtxt
 from itertools import permutations
 
 import sys
@@ -58,7 +57,7 @@ def get_matches_index_dict(matches_df):
     return matches_dict
 
 
-def get_triplet_index_dict():
+def get_triplet_index():
     conn = sqlite3.Connection(root + "/data/svo_db_20201027.db")
     sql = """ SELECT * FROM human_matches"""
     matches_df = pd.read_sql_query(sql, conn)
@@ -121,3 +120,25 @@ def fromBuffer(byte_embeddings):
         ]
     ).astype(np.float32)
     return _embeddings
+
+
+def get_triplet_index_from_good_bad():
+    good_df = pd.read_csv(
+        root + "/data/good_notams_list_2022.06.28.csv", sep=","
+    )
+    bad_df = pd.read_csv(
+        root + "/data/bad_notams_list_2022.06.28.csv", sep=","
+    )
+    good_data = np.squeeze(good_df[['notam_rec_id']].to_numpy())
+    bad_data = np.squeeze(bad_df[['notam_rec_id']].to_numpy())
+    perms = permutations(good_data, 2)
+
+    anchor_index = []
+    positive_index = []
+    negative_index = []
+    for p in perms:
+        anchor_index.append(p[0])
+        positive_index.append(p[1])
+    negative_index = np.random.choice(bad_data, size=len(anchor_index), replace=True).tolist()
+    return (anchor_index, positive_index, negative_index)
+

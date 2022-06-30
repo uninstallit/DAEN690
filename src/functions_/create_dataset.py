@@ -1,11 +1,6 @@
 import sqlite3
-import json
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from itertools import permutations
-from sklearn.preprocessing import LabelEncoder
 
 import sys
 import os
@@ -18,7 +13,7 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(root)
 
-from functions_.functions import get_triplet_index_dict
+from functions_.functions import get_triplet_index
 from pipelines_.pipelines import features_pipeline
 
 
@@ -31,7 +26,7 @@ def main():
     conn.close()
 
     # fill out none values for selected features
-    notams_df["E_CODE"] = notams_df["TEXT"].fillna("UNKNOWN")
+    notams_df["E_CODE"] = notams_df["E_CODE"].fillna("UNKNOWN")
     notams_df["ISSUE_DATE"] = notams_df["ISSUE_DATE"].fillna(
         notams_df["ISSUE_DATE"].value_counts().idxmax()
     )
@@ -43,10 +38,19 @@ def main():
     notams_df["ACCOUNT_ID"] = notams_df["ACCOUNT_ID"].fillna("UNKNOWN")
 
     # create triplet indexes
-    (anchor_index, positive_index, negative_index) = get_triplet_index_dict()
-    anchor_df = notams_df[notams_df["NOTAM_REC_ID"].isin(anchor_index)]
-    positive_df = notams_df[notams_df["NOTAM_REC_ID"].isin(positive_index)]
-    negative_df = notams_df[notams_df["NOTAM_REC_ID"].isin(negative_index)]
+    (anchor_index, positive_index, negative_index) = get_triplet_index()
+    notams_dict = {
+        row_series["NOTAM_REC_ID"]: row_series for _, row_series in notams_df.iterrows()
+    }
+
+    anchor_series_list = [notams_dict[notam_rec_id] for notam_rec_id in anchor_index]
+    anchor_df = pd.concat(anchor_series_list, axis=1).transpose()
+
+    positive_series_list = [notams_dict[notam_rec_id] for notam_rec_id in positive_index]
+    positive_df = pd.concat(positive_series_list, axis=1).transpose()
+
+    negative_series_list = [notams_dict[notam_rec_id] for notam_rec_id in negative_index]
+    negative_df = pd.concat(negative_series_list, axis=1).transpose()
 
     # run features pipeline
     features_pipeline.set_params(**{"idx_7__column_indexes": [2, 3]})
@@ -81,7 +85,7 @@ def main():
         [anchor_data.shape[0], positive_data.shape[0], negative_data.shape[0]]
     )
     min_length = data_lengths.min()
-    
+
     anchor_data = anchor_data[:min_length]
     positive_data = positive_data[:min_length]
     negative_data = negative_data[:min_length]

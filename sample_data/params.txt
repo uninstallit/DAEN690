@@ -1,8 +1,8 @@
 {
-    "start_date__min": 942757200.0,
-    "start_date__max": 2117714400.0,
-    "issue_date__min": 943995600.0,
-    "issue_date__max": 1590943920.0,
+    "start_date__min": 942764400.0,
+    "start_date__max": 2117721600.0,
+    "issue_date__min": 944002800.0,
+    "issue_date__max": 1590951120.0,
     "location_code__min": 0.0,
     "location_code__max": 14399.0,
     "location_code__encodings": {

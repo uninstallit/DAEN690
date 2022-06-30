@@ -213,7 +213,9 @@ class SentenceEmbedderTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, column_index=None, skip=True):
         self.column_index = column_index
         self.skip = skip
-        self.embedder = SentenceTransformer("all-MiniLM-L6-v2")
+        self.embedder = SentenceTransformer("all-MiniLM-L6-v2") # for symmetric semantic search
+        #self.embedder = SentenceTransformer("msmarco-distilbert-base-v4") #asymmetric semantic search
+       
 
     def fit(self, x, y=None):
         return self

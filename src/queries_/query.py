@@ -147,12 +147,11 @@ def main():
     query_ids = query_data[:, 0] # get notam_rec_id
     query_embeddings = fromBuffer(query_data[:, 8])
     query_data = query_data[:, 2:-1].astype("float32") 
-    print(f'** type(query_ids):{type(query_ids)})')
-    print(f'** type(query_data):{type(query_data)})')
 
     # semantic search filter - select the top 100
     print(query_ids)
     selected = []
+    
     for idx, notam_rec_id in enumerate(query_ids):
         similarity_score = tf.keras.metrics.CosineSimilarity()(notam_embeddings, query_embeddings[idx])
         selected. append((idx, notam_rec_id, similarity_score.numpy()))

@@ -105,6 +105,25 @@ class NormalizeCaseTransformer(BaseEstimator, TransformerMixin):
         _x = [[word.lower() for word in words] for words in x.tolist()]
         return pd.Series(_x, name=series_name)
 
+class LowerCaseTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, x, y=None):
+        series_name = x.name
+        _x= ((x
+            .str
+            .replace(r'[^a-zA-Z0-9]',' ') #replace everything which is not a digit or alphabet
+            .str
+            .split()
+            .apply(lambda x: ' '.join([i.strip() for i in x]))
+                #convert to lowercase
+            .str.lower()))
+
+        return pd.Series(_x, name=series_name)
 
 class JoinStrListTransformer(BaseEstimator, TransformerMixin):
     def __init__(self):

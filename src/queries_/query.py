@@ -78,12 +78,12 @@ def main():
     notam_id = matches[2] # let pick a  notam from the list
     # TODO to find TFR - replace with your own not from the matches
 
-    notam_df = notams_df[notams_df["NOTAM_REC_ID"] == notam_id]
+    tfr_df = notams_df[notams_df["NOTAM_REC_ID"] == notam_id]
     print('TFR Notam:')
-    print(notam_df[['NOTAM_REC_ID', 'E_CODE', 'POSSIBLE_START_DATE', 'POSSIBLE_END_DATE']])
+    print(tfr_df[['NOTAM_REC_ID', 'E_CODE', 'POSSIBLE_START_DATE', 'POSSIBLE_END_DATE']])
 
-    start_date = notam_df["POSSIBLE_START_DATE"].tolist()[0]  
-    end_date = notam_df["POSSIBLE_END_DATE"].tolist()[0]  
+    start_date = tfr_df["POSSIBLE_START_DATE"].tolist()[0]  
+    end_date = tfr_df["POSSIBLE_END_DATE"].tolist()[0]  
 
     sql = """ SELECT * FROM notams 
         LEFT JOIN notam_centroids 
@@ -106,21 +106,21 @@ def main():
         raise RuntimeError("Notam query is empty!")
 
     notam_centroid_df = centroid_df[centroid_df["NOTAM_REC_ID"] == notam_id]
-    notam_df = pd.merge(notam_df, notam_centroid_df)
+    tfr_df = pd.merge(tfr_df, notam_centroid_df)
 
-    notam_x = notam_df[["LATITUDE", "LONGITUDE"]].to_numpy()
+    tfr_x = tfr_df[["LATITUDE", "LONGITUDE"]].to_numpy()
     query_x = query_df[["LATITUDE", "LONGITUDE"]].to_numpy()
 
     # balltree filter
     tree = BallTree(query_x, metric="haversine")
     K = 100 # TODO percent how to choose K
     Radius = 30
-    if len(notam_x) > K:
+    if len(tfr_x) > K:
         print(f'Balltree filter by k:{K}') # KNN
-        dist, ind = tree.query(notam_x, k=K)
+        dist, ind = tree.query(tfr_x, k=K)
     else: 
         print(f'Balltree filter by radius:{Radius}nm')
-        ind = tree.query_radius(notam_x, r=Radius)
+        ind = tree.query_radius(tfr_x, r=Radius)
 
     print(f'ind:{ind}')
 
@@ -135,9 +135,9 @@ def main():
 
     set_param_features_pipeline()
     
-    notam_data = features_pipeline.fit_transform(notam_df)
-    notam_embeddings = fromBuffer(notam_data[:, 8])
-    notam_data = notam_data[:, 2:-1] .astype("float32") 
+    tfr_data = features_pipeline.fit_transform(tfr_df)
+    tfr_embeddings = fromBuffer(tfr_data[:, 8])
+    tfr_data = tfr_data[:, 2:-1] .astype("float32") 
     
     query_data = features_pipeline.fit_transform(query_df)
     query_ids = query_data[:, 0] # get notam_rec_id
@@ -147,7 +147,7 @@ def main():
     # semantic search filter - select the top 100
     ss_selected = []
     for idx, notam_rec_id in enumerate(query_ids):
-        similarity_score = tf.keras.metrics.CosineSimilarity()(notam_embeddings, query_embeddings[idx])
+        similarity_score = tf.keras.metrics.CosineSimilarity()(tfr_embeddings, query_embeddings[idx])
         ss_selected.append((notam_rec_id, similarity_score.numpy()))
     ss_selected = sorted(ss_selected, key=lambda x: x[1], reverse=True)[:10]
   
@@ -155,7 +155,7 @@ def main():
     # base_network
     base_network = tf.keras.models.load_model(root + "/src/saved_models_/sm1_model")
     cosine_similarity = tf.keras.metrics.CosineSimilarity()
-    anch_prediction = base_network.predict([notam_data, notam_embeddings])
+    anch_prediction = base_network.predict([tfr_data, tfr_embeddings])
    
     ms_selected = []
     for idx, notam_rec_id in enumerate(query_ids):
@@ -184,10 +184,10 @@ def main():
     print([i for i, s in ms_selected])
 
     print(f'\n---Semantic Search Results launch_id: {launch_id}')
-    print_results(conn, launch_id, notam_df, ss_selected)
+    print_results(conn, launch_id, tfr_df, ss_selected)
 
     print(f'\n---Model Results launch_id: {launch_id}')
-    print_results(conn, launch_id, notam_df, ms_selected)
+    print_results(conn, launch_id, tfr_df, ms_selected)
 
     conn.close()
     

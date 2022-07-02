@@ -1,14 +1,17 @@
 import sqlite3
 import pandas as pd
+import numpy as np
 from datetime import datetime
 import sys
 import os
 
-from pandas import DataFrame
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 root = os.path.dirname(parent)
+
+from pipelines_.pipelines import lower_case_column_text_pipeline
+
 
 exclusion_words = """ obst* OR fire OR unmanned OR crane OR uas OR aerial OR drill OR installed OR 
                             terminal OR parking OR rwy OR taxi OR twy OR hangar OR chemical OR pavement OR 
@@ -22,12 +25,13 @@ exclusion_words = """ obst* OR fire OR unmanned OR crane OR uas OR aerial OR dri
                             approach OR explosion OR explosive OR demolitions """
 
 inclusionwords = """ launch OR space  OR 91.143 OR "ATTENTION AIRLINE DISPATCHERS" OR "HAZARD AREA" OR
-                            "STNR ALT" OR "STNR ALTITUDE" OR "STATIONARY ALT" OR
-                            "TEMPORARY FLIGHT RESTRICTION" """
+                            "STNR ALT" OR "STNR ALTITUDE" OR "STATIONARY ALT*" OR "STNR ALT RESERVATION"
+                            "TEMPORARY FLIGHT RESTRICTION" OR "TEMPORARY FLT RESTRICTION*" OR "FLIGHT REST*" OR TFR """
 
 # combine inclusions and exclusionwords together
-search = """launch OR space OR "91*143" OR "ATTENTION AIRLINE DISPATCHERS" OR "HAZARD AREA" OR
-            "STNR ALT" OR "STNR ALTITUDE" OR "STATIONARY ALT" OR "TEMPORARY FLIGHT RESTRICTION" 
+search = """launch OR space OR "91 143" OR "attention airline dispatchers" OR "hazard area" OR
+            "stnr alt" OR "stnr altitude" OR "stationary alt*" 
+            OR "temporary flight restriction*" OR "temporary flt rest*" OR "flight rest*" OR tfr
             NOT obst* NOT fire NOT unmanned NOT crane NOT uas NOT aerial NOT drill NOT installed
             NOT terminal NOT parking NOT rwy NOT taxi NOT twy NOT hangar NOT chemical
             NOT pavement NOT firing NOT "out of service" NOT volcan NOT turbine NOT flare NOT wx 
@@ -36,7 +40,7 @@ search = """launch OR space OR "91*143" OR "ATTENTION AIRLINE DISPATCHERS" OR "H
             NOT helipad NOT bird NOT laser NOT heliport NOT ordnance NOT decommisioned NOT decomissioned 
             NOT dropzone NOT runway NOT wind NOT aerobatic NOT airfield NOT model NOT para* NOT parachute 
             NOT jumpers NOT paradrops NOT glide NOT tcas NOT accident NOT investigation NOT training 
-            NOT approach NOT explosion NOT explosive NOT demolitions"""
+            NOT approach NOT explosion NOT explosive NOT demolition*"""
 
 def create_negative_notams_dataset(conn_v, cur_v, launch_rec_id, launch_time):
 
@@ -66,12 +70,24 @@ def create_virtual_full_text_search_notam_table(conn, cursor):
     sql = f'select {cols} from notams '
     notams_df = pd.read_sql_query(sql, conn)
 
-    # TODO  clean text before inserting to the virtual table
+    notams_df["E_CODE"] = notams_df["E_CODE"].fillna("UNKNOWN")
+    notams_df["TEXT"] = notams_df["TEXT"].fillna("UNKNOWN")
+
+    # create lowercase columns for better full-text search before inserting to the virtual table
+    e_code_lc = lower_case_column_text_pipeline("E_CODE").fit_transform(notams_df)
+    e_code_lc = np.squeeze(e_code_lc, axis=1)
+    notams_df['E_CODE_LC'] = e_code_lc
+
+    text_lc = lower_case_column_text_pipeline("TEXT").fit_transform(notams_df)
+    text_lc = np.squeeze(text_lc, axis=1)
+    notams_df['TEXT_LC'] = text_lc
+
+    print(notams_df[['NOTAM_REC_ID','E_CODE']])
 
     #create virtual table
     conn_v = sqlite3.connect(':memory:')
     cur_v = conn_v.cursor()
-    cur_v.execute('create virtual table virtual_notams using fts5(NOTAM_REC_ID,E_CODE,TEXT,ISSUE_DATE,POSSIBLE_START_DATE,POSSIBLE_END_DATE, MIN_ALT,MAX_ALT,AFFECTED_FIR,LOCATION_CODE,LOCATION_NAME, tokenize="porter unicode61");')
+    cur_v.execute('create virtual table virtual_notams using fts5(NOTAM_REC_ID,E_CODE, TEXT, ISSUE_DATE,POSSIBLE_START_DATE,POSSIBLE_END_DATE, MIN_ALT,MAX_ALT,AFFECTED_FIR,LOCATION_CODE,LOCATION_NAME, E_CODE_LC, TEXT_LC ,tokenize="porter unicode61");')
     notams_df.to_sql('virtual_notams', conn_v, if_exists='append', index = False)
     print('Finished inserting to virtual_notams table')
 
@@ -82,7 +98,7 @@ def convert_str_datetime_unix_datetime(date_time_str):
     date_time_obj = datetime.strptime(date_time_str, date_format)
     return datetime.timestamp(date_time_obj)
 
-# TFR NOTAM for a launch is the one has a shortest duration, keywords, and USA locations KXXX, ZXX
+# Find TFR NOTAM condition: shortest duration, keywords, and USA locations KXXX, ZXX
 def find_tfr_for_launch(conn_v, cur_v, launch):
     launch_rec_id, launch_date = launch['LAUNCHES_REC_ID'], launch['LAUNCH_DATE']
     print(f'launch: {launch_rec_id}, {launch_date}')
@@ -92,8 +108,8 @@ def find_tfr_for_launch(conn_v, cur_v, launch):
             WHERE (DATETIME(POSSIBLE_START_DATE) <= DATETIME('{launch_date}') AND DATETIME(POSSIBLE_START_DATE) > DATETIME('{launch_date}', '-2 days'))
             and (DATETIME(POSSIBLE_END_DATE) > DATETIME('{launch_date}') AND DATETIME(POSSIBLE_END_DATE) < DATETIME('{launch_date}', '+2 days')) 
             and (LOCATION_CODE like 'Z%' or LOCATION_CODE like 'K%' or LOCATION_NAME like '%ARTCC%')
-            and (E_CODE not null or TEXT not null) 
-            and (E_CODE MATCH '{q}' or TEXT MATCH '{q}')
+            and (E_CODE_LC not null or TEXT_LC not null) 
+            and (E_CODE_LC MATCH '{q}' or TEXT_LC MATCH '{q}')
             """.format(launch_date=launch_date, q=search)
 
     notams_df = pd.read_sql_query(sql, conn_v)

@@ -29,6 +29,8 @@ from transformers_.transformers import (
     SentenceEmbedderTransformer,
     MinMaxScalerTransformer,
     OrdinalEncoderAndMinMaxScalerTransformer,
+    NormalizeCaseTransformer,
+    LowerCaseTransformer
 )
 
 
@@ -39,6 +41,13 @@ clean_text_pipeline = Pipeline(
         ("decode_abbrev", DecodeAbbrevTransformer()),
         ("remove_punkt", RemovePunctuationTransformer()),
         ("strjoin_words", JoinStrListTransformer()),
+        ("to_dataframe", SeriesToDataframeTransformer()),
+    ]
+)
+
+lower_case_text_pipeline = Pipeline(
+    [
+        ("lower_case_sentns", LowerCaseTransformer()),
         ("to_dataframe", SeriesToDataframeTransformer()),
     ]
 )
@@ -152,6 +161,22 @@ def clean_column_text_pipeline(col_name):
         ]
     )
     return _pipeline
+
+def lower_case_column_text_pipeline(col_name):
+    _pipeline = Pipeline(
+        [
+            (
+                "columns",
+                ColumnTransformer(
+                    [
+                        ("lower_case_text", lower_case_text_pipeline, col_name),
+                    ]
+                ),
+            ),
+        ]
+    )
+    return _pipeline
+
 
 
 def clean_column_text_pipeline(column_name):

@@ -23,21 +23,19 @@ from pipelines_.pipelines import features_pipeline
 
 tf.get_logger().setLevel("ERROR")
 
-def print_results(conn, notam_df, selected_final):
-    print('** Results') 
-    final_list = tuple([rec_id for rec_id, s in selected_final])
-    sql = """ SELECT notam_rec_id, e_code, possible_start_date, possible_end_date FROM notams where notam_rec_id in {list_rec_id} """.format(list_rec_id=final_list)
+def print_results(conn, launch_rec_id, tfr_df, selected):   
+    sql = """ SELECT notam_rec_id, e_code, possible_start_date, possible_end_date FROM notams where notam_rec_id in {list_rec_id}
+          """.format(list_rec_id=tuple([rec_id for rec_id, s in selected]))
     notams_df = pd.read_sql_query(sql, conn)
-    # organize final list to print
-    notams_df_final = []
-    for rec_id in  final_list:
-       notams_df_final.append(notams_df[notams_df['NOTAM_REC_ID'] ==  rec_id])
+    
+    related_notams = []
+    for rec_id, _ in  selected:
+       related_notams.append(notams_df[notams_df['NOTAM_REC_ID'] ==  rec_id])
         
-    finals = pd.concat(notams_df_final)
-    print('TFR Notam:')
-    print(notam_df[['NOTAM_REC_ID', 'E_CODE', 'POSSIBLE_START_DATE', 'POSSIBLE_END_DATE']])
+    related_notams_df = pd.concat(related_notams)
+    print(f"TFR {tfr_df[['NOTAM_REC_ID', 'E_CODE', 'POSSIBLE_START_DATE', 'POSSIBLE_END_DATE']]}")
     print('Related NOTAMs:')
-    print(finals)
+    print(related_notams_df)
 
 
 def set_param_features_pipeline():
@@ -74,10 +72,9 @@ def main():
     sql = """ SELECT * FROM notam_centroids """
     centroid_df = pd.read_sql_query(sql, conn)
 
-    launch_number = 284 # 2016-12-18 19:13:00
+    launch_id = 284 # 2016-12-18 19:13:00
     matches_dict = get_matches_index_dict(matches_df)
-    matches = matches_dict[launch_number]
-    print(f'matches:{matches}')
+    matches = matches_dict[launch_id]
     notam_id = matches[2] # let pick a  notam from the list
     # TODO to find TFR - replace with your own not from the matches
 
@@ -100,14 +97,13 @@ def main():
     query_df = pd.read_sql_query(sql, conn)
 
     print('query_df:', query_df[['NOTAM_REC_ID', 'E_CODE', 'POSSIBLE_START_DATE', 'POSSIBLE_END_DATE']])
-    #print(notams_df.isna().sum())
+    
+    query_df = query_df[query_df["LATITUDE"].notna()]
+    query_df = query_df[query_df["LONGITUDE"].notna()]
 
     query_ids = query_df["NOTAM_REC_ID"].tolist()
     if len(query_ids) == 0:
         raise RuntimeError("Notam query is empty!")
-
-    query_df = query_df[query_df["LATITUDE"].notna()]
-    query_df = query_df[query_df["LONGITUDE"].notna()]
 
     notam_centroid_df = centroid_df[centroid_df["NOTAM_REC_ID"] == notam_id]
     notam_df = pd.merge(notam_df, notam_centroid_df)
@@ -117,7 +113,7 @@ def main():
 
     # balltree filter
     tree = BallTree(query_x, metric="haversine")
-    K = 50 # TODO percent how to choose K
+    K = 100 # TODO percent how to choose K
     Radius = 30
     if len(notam_x) > K:
         print(f'Balltree filter by k:{K}') # KNN
@@ -130,7 +126,7 @@ def main():
 
     # # print(ind)  # indices of 3 closest neighbors
     # # print(dist)  # distances to 3 closest neighbors
-    print("Notams count within range: ", len(ind[0]))
+    print("BallTree Notams count within range: ", len(ind[0]))
     query_df = query_df.iloc[ind[0]]
    
     # # fill out none values for selected features
@@ -149,37 +145,49 @@ def main():
     query_data = query_data[:, 2:-1].astype("float32") 
 
     # semantic search filter - select the top 100
-    print(query_ids)
-    selected = []
-    
+    ss_selected = []
     for idx, notam_rec_id in enumerate(query_ids):
         similarity_score = tf.keras.metrics.CosineSimilarity()(notam_embeddings, query_embeddings[idx])
-        selected. append((idx, notam_rec_id, similarity_score.numpy()))
-    selected = sorted(selected, key=lambda x: x[2], reverse=True)[:100]
-    print(f'Cosine_similarity (rec_id, percent):{selected}')
-    selected = [(idx, rec_id) for idx, rec_id,s in selected]
+        ss_selected.append((notam_rec_id, similarity_score.numpy()))
+    ss_selected = sorted(ss_selected, key=lambda x: x[1], reverse=True)[:10]
+  
     
-    # prepare data to feed to the base_network
-    base_network = tf.keras.models.load_model(root + "/src/saved_models_/sm3_model")
+    # base_network
+    base_network = tf.keras.models.load_model(root + "/src/saved_models_/sm1_model")
+    cosine_similarity = tf.keras.metrics.CosineSimilarity()
+    anch_prediction = base_network.predict([notam_data, notam_embeddings])
    
-    selected_final = []
-    for idx, rec_id  in selected:
-        print(idx, rec_id)
+    ms_selected = []
+    for idx, notam_rec_id in enumerate(query_ids):
         _query_data = np.expand_dims(query_data[idx], 0)
         _query_embd = np.expand_dims(query_embeddings[idx], axis=(0, -1))
-        anch_prediction = base_network.predict([notam_data, notam_embeddings])
         other_prediction = base_network.predict([_query_data, _query_embd])
-        similarity = tf.keras.metrics.CosineSimilarity()(anch_prediction, other_prediction)
+        cosine_similarity.reset_state()
+        cosine_similarity.update_state(anch_prediction, other_prediction)
+        similarity = cosine_similarity.result().numpy()
+        ms_selected.append((query_ids[idx], similarity))
 
-        if similarity >= 0.95:
-            selected_final.append((rec_id, similarity.numpy()))
-
-    selected_final = sorted(selected_final, key=lambda x: x[1], reverse=True)[:10]
-    print([(rec_id, s) for rec_id, s in selected_final])
+    ms_selected = sorted(ms_selected, key=lambda x: x[1], reverse=True)[:10] 
+    print([(rec_id, s) for rec_id, s in ms_selected])
    
-    print("Total selected  queries: ", len(selected_final))
+    print("\nSemantic Search")
+    for notam_rec_id, similarity in ss_selected:
+        print(f"ss Notam id: {notam_rec_id} - cos score: {similarity}")
 
-    print_results(conn, notam_df, selected_final)
+    print("\nModel Score")
+    for notam_rec_id, similarity in ms_selected:
+        print(f"ms Notam id: {notam_rec_id} - cos score: {similarity}")
+
+    print("\nSemantic Search")
+    print([i for i, s in ss_selected])
+    print("\nModel Score")
+    print([i for i, s in ms_selected])
+
+    print(f'\n---Semantic Search Results launch_id: {launch_id}')
+    print_results(conn, launch_id, notam_df, ss_selected)
+
+    print(f'\n---Model Results launch_id: {launch_id}')
+    print_results(conn, launch_id, notam_df, ms_selected)
 
     conn.close()
     

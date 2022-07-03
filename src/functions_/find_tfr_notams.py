@@ -24,14 +24,14 @@ exclusion_words = """ obst* OR fire OR unmanned OR crane OR uas OR aerial OR dri
                             glide OR tcas OR accident OR investigation OR training OR 
                             approach OR explosion OR explosive OR demolitions """
 
-inclusionwords = """ launch OR space  OR 91.143 OR "ATTENTION AIRLINE DISPATCHERS" OR "HAZARD AREA" OR
-                            "STNR ALT" OR "STNR ALTITUDE" OR "STATIONARY ALT*" OR "STNR ALT RESERVATION"
-                            "TEMPORARY FLIGHT RESTRICTION" OR "TEMPORARY FLT RESTRICTION*" OR "FLIGHT REST*" OR TFR """
+inclusionwords = """ launch OR space OR 91.143 OR "ATTENTION AIRLINE DISPATCHERS" OR "HAZARD AREA" 
+                     OR "STNR ALT" OR "STNR ALTITUDE" OR "STATIONARY ALT*" 
+                     OR "TEMPORARY FLIGHT RESTRICTION" OR "TEMPORARY FLT RESTRICTION*" OR "FLIGHT REST*" OR TFR """
 
 # combine inclusions and exclusionwords together
-search = """launch OR space OR "91 143" OR "attention airline dispatchers" OR "hazard area" OR
-            "stnr alt" OR "stnr altitude" OR "stationary alt*" 
-            OR "temporary flight restriction*" OR "temporary flt rest*" OR "flight rest*" OR tfr
+search = """launch OR space  OR "91*143" OR "attention airline dispatchers" OR "hazard area" 
+            OR "stnr alt" OR "stnr altitude" OR "stationary alt*" 
+            OR "temporary flight restriction*" OR "temporary flt rest*" OR "flight rest*" OR tfr 
             NOT obst* NOT fire NOT unmanned NOT crane NOT uas NOT aerial NOT drill NOT installed
             NOT terminal NOT parking NOT rwy NOT taxi NOT twy NOT hangar NOT chemical
             NOT pavement NOT firing NOT "out of service" NOT volcan NOT turbine NOT flare NOT wx 
@@ -40,7 +40,7 @@ search = """launch OR space OR "91 143" OR "attention airline dispatchers" OR "h
             NOT helipad NOT bird NOT laser NOT heliport NOT ordnance NOT decommisioned NOT decomissioned 
             NOT dropzone NOT runway NOT wind NOT aerobatic NOT airfield NOT model NOT para* NOT parachute 
             NOT jumpers NOT paradrops NOT glide NOT tcas NOT accident NOT investigation NOT training 
-            NOT approach NOT explosion NOT explosive NOT demolition*"""
+            NOT approach NOT explosion NOT explosive NOT demolition* NOT launched"""
 
 def create_negative_notams_dataset(conn_v, cur_v, launch_rec_id, launch_time):
 
@@ -107,7 +107,7 @@ def find_tfr_for_launch(conn_v, cur_v, launch):
     sql =""" SELECT NOTAM_REC_ID, MIN_ALT, MAX_ALT, ISSUE_DATE, POSSIBLE_START_DATE, POSSIBLE_END_DATE, E_CODE  FROM virtual_notams 
             WHERE (DATETIME(POSSIBLE_START_DATE) <= DATETIME('{launch_date}') AND DATETIME(POSSIBLE_START_DATE) > DATETIME('{launch_date}', '-2 days'))
             and (DATETIME(POSSIBLE_END_DATE) > DATETIME('{launch_date}') AND DATETIME(POSSIBLE_END_DATE) < DATETIME('{launch_date}', '+2 days')) 
-            and (LOCATION_CODE like 'Z%' or LOCATION_CODE like 'K%' or LOCATION_NAME like '%ARTCC%')
+            and (LOCATION_CODE like 'Z%' or LOCATION_CODE like 'K%' or LOCATION_NAME like '%ARTCC%' or AFFECTED_FIR like 'Z%' or AFFECTED_FIR like 'K%')
             and (E_CODE_LC not null or TEXT_LC not null) 
             and (E_CODE_LC MATCH '{q}' or TEXT_LC MATCH '{q}')
             """.format(launch_date=launch_date, q=search)
@@ -139,7 +139,7 @@ def find_tfr_notams(conn, cursor):
     for index, launch in launch_df.iterrows():
         tfr_notam = find_tfr_for_launch(conn_v, cur_v, launch)
         if tfr_notam is not None:
-            # attach a launch_rec_id column to a  TFR
+            # append a launch_rec_id column to a  TFR
             launch_tfr_notam = pd.concat([pd.Series([launch['LAUNCHES_REC_ID']], index=['LAUNCHES_REC_ID']), tfr_notam])
             df = pd.DataFrame([launch_tfr_notam]) # same as DataFrame(launch_tfr_notam).transpose()
             tfr_notams.append(df)
@@ -147,17 +147,16 @@ def find_tfr_notams(conn, cursor):
             launches_has_no_tfr.append(launch['LAUNCHES_REC_ID'])
    
     results = pd.concat(tfr_notams)
-    results.to_csv(f'./data/tft_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
     print(f'Total TFR count:{len(results)}')
     print(f'Launch_rec_id without TFR: {launches_has_no_tfr}')
-    return tfr_notams
+    return results
     
 def main():
     conn = sqlite3.Connection("./data/svo_db_20201027.db")
     cursor = conn.cursor()
     results = find_tfr_notams(conn, cursor)
-    # for launch=391 ==> TRF = 835580, 2018-04-02 19:52:00 2018-04-02 21:08:00
-
+    results.to_csv(f'./data/tfr_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
+    
     conn.close()
 
     exit()

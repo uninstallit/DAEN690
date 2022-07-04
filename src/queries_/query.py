@@ -18,7 +18,7 @@ sys.path.append(root)
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
-from functions_.functions import fromBuffer, inputNoneValues, get_matches_index_dict
+from functions_.functions import fromBuffer, inputNoneValues, get_launch_location, get_spaceports_dict
 from pipelines_.pipelines import features_pipeline
 
 tf.get_logger().setLevel("ERROR")
@@ -65,7 +65,8 @@ def set_param_features_pipeline():
 def query(conn, spaceports_dict, launch, tfr_df):
     launch_rec_id, launch_date = launch['LAUNCHES_REC_ID'], launch['LAUNCH_DATE']
     launch_spaceport_rec_id = int(launch['SPACEPORT_REC_ID']) if launch['SPACEPORT_REC_ID'] else np.NaN
-    launch_location = spaceports_dict[launch_spaceport_rec_id]['LOCATION_1'] if launch_spaceport_rec_id != np.NaN else ""
+    launch_location = spaceports_dict[launch_spaceport_rec_id]['LOCATION_1']
+    launch_state_location  = spaceports_dict[launch_spaceport_rec_id]['LOCATION_2']
     
     tfr_rec_id = tfr_df.iloc[0]['NOTAM_REC_ID'] # Only TFR per launch event
 
@@ -169,10 +170,10 @@ def query(conn, spaceports_dict, launch, tfr_df):
     print([i for i, s in ms_selected])
 
     
-    print(f'\n---Semantic Search Results launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
+    print(f'\n---Semantic Search Model Results launch_id: {launch_rec_id} date: {launch_date} {launch_location} {launch_state_location}')
     ss_results  = pack_results(conn, launch_rec_id, tfr_df, ss_selected)
 
-    print(f'\n---Model Results launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
+    print(f'\n---Siamese Model Results launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
     ms_results = pack_results(conn, launch_rec_id, tfr_df, ms_selected)
     
     return (launch_rec_id, ss_results, ms_results)
@@ -187,12 +188,9 @@ def main():
 
     sql = """ SELECT * from launches """
     launches_df = pd.read_sql_query(sql, conn)
+    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].fillna(9999)
     
-    sql = """ SELECT * from spaceports """
-    spaceports_df = pd.read_sql_query(sql, conn)
-    spaceports_dict = {}
-    for _, space in spaceports_df.iterrows():
-        spaceports_dict[space['SPACEPORT_REC_ID']] = space
+    spaceports_dict = get_spaceports_dict(conn)
 
     tfr_notams_df = pd.read_csv(root + "/data/tfr_notams.csv" , engine="python" )
 
@@ -227,8 +225,8 @@ def main():
     ss_results_df.to_csv(f'./data/team_bravo_semantic_matches.csv', index=False)
     ms_results_df.to_csv(f'./data/team_bravo_siamese_matches.csv', index=False)
 
-    ss_results_df.to_sql('team_bravo_semantic_matches', conn, if_exists='replace', index = False)
-    ms_results_df.to_sql('team_bravo_siamese_matches', conn, if_exists='replace', index = False)
+   # ss_results_df.to_sql('team_bravo_semantic_matches', conn, if_exists='replace', index = False)
+   #ms_results_df.to_sql('team_bravo_siamese_matches', conn, if_exists='replace', index = False)
     
     conn.close()
 

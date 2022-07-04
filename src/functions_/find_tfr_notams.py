@@ -11,7 +11,10 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 
 from pipelines_.pipelines import lower_case_column_text_pipeline
+from functions_.spaceports_dict import get_launch_location, get_spaceports_dict
 
+
+spaceports_dict = get_spaceports_dict()
 
 exclusion_words = """ obst* OR fire OR unmanned OR crane OR uas OR aerial OR drill OR installed OR 
                             terminal OR parking OR rwy OR taxi OR twy OR hangar OR chemical OR pavement OR 
@@ -98,13 +101,14 @@ def convert_str_datetime_unix_datetime(date_time_str):
     date_time_obj = datetime.strptime(date_time_str, date_format)
     return datetime.timestamp(date_time_obj)
 
+
 # Find TFR NOTAM condition: shortest duration, keywords, and USA locations KXXX, ZXX
 def find_tfr_for_launch(conn_v, cur_v, launch):
-    launch_rec_id, launch_date = launch['LAUNCHES_REC_ID'], launch['LAUNCH_DATE']
+    launch_rec_id, launch_date  = launch['LAUNCHES_REC_ID'], launch['LAUNCH_DATE']
     print(f'launch: {launch_rec_id}, {launch_date}')
 
     #   |2days----Possible_start_time-----|launch_time|------Possible_end_time------2days|
-    sql =""" SELECT NOTAM_REC_ID, MIN_ALT, MAX_ALT, ISSUE_DATE, POSSIBLE_START_DATE, POSSIBLE_END_DATE, E_CODE  FROM virtual_notams 
+    sql =""" SELECT NOTAM_REC_ID, MIN_ALT, MAX_ALT, ISSUE_DATE, POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE  FROM virtual_notams 
             WHERE (DATETIME(POSSIBLE_START_DATE) <= DATETIME('{launch_date}') AND DATETIME(POSSIBLE_START_DATE) > DATETIME('{launch_date}', '-2 days'))
             and (DATETIME(POSSIBLE_END_DATE) > DATETIME('{launch_date}') AND DATETIME(POSSIBLE_END_DATE) < DATETIME('{launch_date}', '+2 days')) 
             and (LOCATION_CODE like 'Z%' or LOCATION_CODE like 'K%' or LOCATION_NAME like '%ARTCC%' or AFFECTED_FIR like 'Z%' or AFFECTED_FIR like 'K%')
@@ -131,16 +135,22 @@ def find_tfr_for_launch(conn_v, cur_v, launch):
 def find_tfr_notams(conn, cursor):
     (conn_v, cur_v) = create_virtual_full_text_search_notam_table(conn, cursor)
 
-    sql = """ select LAUNCHES_REC_ID, LAUNCH_DATE from launches  """
-    launch_df = pd.read_sql_query(sql, conn)
+    sql = """ select * from launches  """
+    launches_df = pd.read_sql_query(sql, conn)
+    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].fillna(9999)
 
     launches_has_no_tfr = []
     tfr_notams = []
-    for index, launch in launch_df.iterrows():
+    for index, launch in launches_df.iterrows():
         tfr_notam = find_tfr_for_launch(conn_v, cur_v, launch)
         if tfr_notam is not None:
+            launch_spaceport_rec_id = int(launch['SPACEPORT_REC_ID'])
             # append a launch_rec_id column to a  TFR
+            launch_location, launch_state_location = get_launch_location(spaceports_dict, launch_spaceport_rec_id)
             launch_tfr_notam = pd.concat([pd.Series([launch['LAUNCHES_REC_ID']], index=['LAUNCHES_REC_ID']), tfr_notam])
+            launch_tfr_notam = pd.concat([launch_tfr_notam,pd.Series([launch_location], index=['LAUNCH_LOCATION'])])
+            launch_tfr_notam = pd.concat([launch_tfr_notam,pd.Series([launch_state_location], index=['LAUNCH_STATE_LOCATION'])])
+
             df = pd.DataFrame([launch_tfr_notam]) # same as DataFrame(launch_tfr_notam).transpose()
             tfr_notams.append(df)
         else:

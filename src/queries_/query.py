@@ -18,7 +18,8 @@ sys.path.append(root)
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
-from functions_.functions import fromBuffer, inputNoneValues, get_launch_location, get_spaceports_dict
+from functions_.functions import fromBuffer, inputNoneValues
+from functions_.spaceports_dict import get_launch_location, get_spaceports_dict
 from pipelines_.pipelines import features_pipeline
 
 tf.get_logger().setLevel("ERROR")
@@ -63,10 +64,8 @@ def set_param_features_pipeline():
 
     
 def query(conn, spaceports_dict, launch, tfr_df):
-    launch_rec_id, launch_date = launch['LAUNCHES_REC_ID'], launch['LAUNCH_DATE']
-    launch_spaceport_rec_id = int(launch['SPACEPORT_REC_ID']) if launch['SPACEPORT_REC_ID'] else np.NaN
-    launch_location = spaceports_dict[launch_spaceport_rec_id]['LOCATION_1']
-    launch_state_location  = spaceports_dict[launch_spaceport_rec_id]['LOCATION_2']
+    launch_rec_id, launch_date , launch_spaceport_rec_id= launch['LAUNCHES_REC_ID'], launch['LAUNCH_DATE'], launch['SPACEPORT_REC_ID']
+    launch_location, launch_state_location = get_launch_location(spaceports_dict, launch_spaceport_rec_id)
     
     tfr_rec_id = tfr_df.iloc[0]['NOTAM_REC_ID'] # Only TFR per launch event
 
@@ -189,6 +188,7 @@ def main():
     sql = """ SELECT * from launches """
     launches_df = pd.read_sql_query(sql, conn)
     launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].fillna(9999)
+    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].astype('int')
     
     spaceports_dict = get_spaceports_dict(conn)
 
@@ -225,8 +225,8 @@ def main():
     ss_results_df.to_csv(f'./data/team_bravo_semantic_matches.csv', index=False)
     ms_results_df.to_csv(f'./data/team_bravo_siamese_matches.csv', index=False)
 
-   # ss_results_df.to_sql('team_bravo_semantic_matches', conn, if_exists='replace', index = False)
-   #ms_results_df.to_sql('team_bravo_siamese_matches', conn, if_exists='replace', index = False)
+    ss_results_df.to_sql('team_bravo_semantic_matches', conn, if_exists='replace', index = False)
+    ms_results_df.to_sql('team_bravo_siamese_matches', conn, if_exists='replace', index = False)
     
     conn.close()
 

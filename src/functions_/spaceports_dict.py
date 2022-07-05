@@ -7,31 +7,31 @@ import numpy as np
 # Airport Data to find ARTCC for spaceports: https://www.airport-data.com 
 # ICAO https://www.faa.gov/air_traffic/publications/atpubs/locid_html/chap1_section_6_paragraph_H.html
 
-# spaceport_rec_id:[ARTCC_CODE]
-spaceport_artcc_dict = {} # spaceport_rec_id:[ARTCC_CODE]
+# store artcc as a string for each spaceport ready for sql to use
+spaceport_artcc_dict = {} 
 spaceport_artcc_dict[2] =  "('ZMA','KZMA','ZJX', 'KZJX')"         # Cape Canaveral	Florida
 spaceport_artcc_dict[3] =  "('ZJX', 'KZJX')"                      # Jacksonville	Florida
 spaceport_artcc_dict[4] =  "('ZDV','KZDV')"                       # Adams County	Colorado
 spaceport_artcc_dict[5] =  "('ZAB','KZAB')"                       # Adams County	Colorado
-spaceport_artcc_dict[6] =  "('ZLA', 'KZLA')"                              # Lancaster	California
+spaceport_artcc_dict[6] =  "('ZLA', 'KZLA')"                      # Lancaster	California
 spaceport_artcc_dict[7] =  "('ZHU','KZHU')"                       # Houston	Texas
 spaceport_artcc_dict[8] =  "('ZMA','KZMA','ZJX', 'KZJX')"         # Merritt Island	Florida
-spaceport_artcc_dict[9] =  "('ZDC','KZDC')"        # Wallops Island	Virginia
-spaceport_artcc_dict[10] = "('ZFW','KZFW')"        # Midland	Texas
-spaceport_artcc_dict[11] = "('ZLA','KZLA')"        # Mojave	California
-spaceport_artcc_dict[12] = "('ZFW','KZFW','KDFW')" # Burns Flat	Oklahoma
-spaceport_artcc_dict[13] = "('ZHN','PHNL')"        # Kekaha	Hawaii
-spaceport_artcc_dict[14] = "('ZAN','KZAN','PAZA')"        # Kodiak Island	Alaska
-spaceport_artcc_dict[15] = "('ZAN', 'KZAN')"               # Fairbanks	Alaska
-spaceport_artcc_dict[16] = "('PKRO','PKWA','ROI')" # Kwajalein Atoll	Marshall Islands. No ARTCC found far land
-spaceport_artcc_dict[17] = "('ZHN', 'PHNL')"       # Wake Island	Marshall Islands, Honolulu
-spaceport_artcc_dict[18] = "('ZMA','KZMA','ZJX','KZJX')"         # Titusville	Florida
-spaceport_artcc_dict[19] = "('ZAB', 'KZAB')"               # Truth or Consequences	New Mexico
-spaceport_artcc_dict[20] = "('ZJX','KZJX')"        # Woodbine	Georgia
-spaceport_artcc_dict[21] = "('ZFW','ZFW')"         # McGregor	Texas
-spaceport_artcc_dict[22] = "('ZHU','KZHU')"        # Brownsville	Texas
-spaceport_artcc_dict[23] = "('ZLA','KZLA')"        # Lompoc	California
-spaceport_artcc_dict[24] = "('ZAB', 'KZAB')"               # Las Cruces	New Mexico
+spaceport_artcc_dict[9] =  "('ZDC','KZDC')"                       # Wallops Island	Virginia
+spaceport_artcc_dict[10] = "('ZFW','KZFW')"                       # Midland	Texas
+spaceport_artcc_dict[11] = "('ZLA','KZLA')"                       # Mojave	California
+spaceport_artcc_dict[12] = "('ZFW','KZFW','KDFW')"                # Burns Flat	Oklahoma
+spaceport_artcc_dict[13] = "('ZHN','PHNL')"                       # Kekaha	Hawaii
+spaceport_artcc_dict[14] = "('ZAN','KZAN','PAZA')"                # Kodiak Island	Alaska
+spaceport_artcc_dict[15] = "('ZAN', 'KZAN')"                      # Fairbanks	Alaska
+spaceport_artcc_dict[16] = "('PKRO','PKWA','ROI')"                # Kwajalein Atoll	Marshall Islands. No ARTCC found far land
+spaceport_artcc_dict[17] = "('ZHN', 'PHNL')"                      # Wake Island	Marshall Islands, Honolulu
+spaceport_artcc_dict[18] = "('ZMA','KZMA','ZJX','KZJX')"          # Titusville	Florida
+spaceport_artcc_dict[19] = "('ZAB', 'KZAB')"                      # Truth or Consequences	New Mexico
+spaceport_artcc_dict[20] = "('ZJX','KZJX')"                       # Woodbine	Georgia
+spaceport_artcc_dict[21] = "('ZFW','ZFW')"                        # McGregor	Texas
+spaceport_artcc_dict[22] = "('ZHU','KZHU')"                       # Brownsville	Texas
+spaceport_artcc_dict[23] = "('ZLA','KZLA')"                       # Lompoc	California
+spaceport_artcc_dict[24] = "('ZAB', 'KZAB')"                      # Las Cruces	New Mexico
 
 def get_spaceport_artcc(spaceport_rec_id):
     if spaceport_rec_id in spaceport_artcc_dict.keys():

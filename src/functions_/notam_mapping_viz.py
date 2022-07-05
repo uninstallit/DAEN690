@@ -12,6 +12,7 @@ import geopandas as gpd
 from geopandas import GeoDataFrame
 import matplotlib.pyplot as plt
 import plotly.express as px
+import datetime
 
 import sys
 import os
@@ -20,28 +21,57 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 root = os.path.dirname(parent)
+
 my_connect = sqlite3.Connection('./data/svo_db_20201027.db')
 my_cursor = my_connect.cursor()
 
 good_notam = []
-with open('./data/good_notams_list.csv', 'r') as my_file:
+with open('./data/good_notams_list_2022.06.28.csv', 'r') as my_file:
     my_reader = csv.reader(my_file)
     for row in my_reader:
         good_notam.append(row)
 
 good = """ 
     CREATE TABLE IF NOT EXISTS good_notams (
-    NOTAM_REC_ID           INTEGER);
+    LAUNCH_REC_ID           INTEGER,
+    NOTAM_REC_ID            INTEGER,
+    SPACEPORT_REC_ID        INTEGER);
     """
     
 my_cursor.execute(good)
 my_connect.commit()
 
 my_cursor.execute("DELETE FROM good_notams")
-my_cursor.executemany("INSERT INTO good_notams VALUES(?);", good_notam)
+my_cursor.executemany("INSERT INTO good_notams VALUES(?,?,?);", good_notam)
 my_connect.commit()
 
+tfr_notams = []
+with open('./data/tfr_notams.0704.csv', 'r') as my_file:
+    my_reader = csv.reader(my_file)
+    for row in my_reader:
+        tfr_notams.append(row)
 
+tfr = """ 
+    CREATE TABLE IF NOT EXISTS tfr_notams (
+    LAUNCH_REC_ID           INTEGER,
+    NOTAM_REC_ID            INTEGER,
+    MIN_ALT                 INTEGER,
+    MAX_ALT                 INTEGER,
+    ISSUE_DATE              DATETIME,
+    START_DATE              DATETIME,
+    END_DATE                DATETIME,
+    LOCATION_CODE           TEXT,
+    E_CODE                  TEXT,
+    LAUNCH_CITY             TEXT,
+    LAUNCH_STATE            TEXT);
+    """
+    
+my_cursor.execute(tfr)
+my_connect.commit()
+
+my_cursor.execute("DELETE FROM tfr_notams")
+my_cursor.executemany("INSERT INTO tfr_notams VALUES(?,?,?,?,?,?,?,?,?,?,?);", tfr_notams)
+my_connect.commit()
 
 def world_map(W):
 
@@ -123,18 +153,19 @@ def all_us_map(U):
 
 def good_notam_map(G):
 
-    spaceport = my_cursor.execute("""SELECT SPACEPORT_REC_ID, LATITUDE, LONGITUDE FROM spaceports WHERE LATITUDE > 0""").fetchall()
+    spaceport = my_cursor.execute("""SELECT SPACEPORT_REC_ID, SPACEPORT_NAME, LATITUDE, LONGITUDE FROM spaceports WHERE LATITUDE > 0""").fetchall()
     space_df = pd.DataFrame(spaceport)
-    space_df.columns = ['REC_ID', 'LATITUDE', 'LONGITUDE']
+    space_df.columns = ['REC_ID_1', 'REC_ID_2', 'LATITUDE', 'LONGITUDE']
     space_df['CLASSIFICATION'] = 'SPACEPORT'
     space_df['RADIUS_NM'] = 1
+    space_df['REC_ID'] = list(zip(space_df.REC_ID_1, space_df.REC_ID_2))
     # print(space_df)
 
-    good_centriods = my_cursor.execute("""SELECT t1.NOTAM_REC_ID, t1.LATITUDE, t1.LONGITUDE, t2.CLASSIFICATION, t1.RADIUS_NM FROM notam_centroids AS t1 CROSS JOIN notams AS t2 CROSS JOIN good_notams AS t3 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND t1.NOTAM_REC_ID = t3.NOTAM_REC_ID AND t1.LATITUDE < 80 AND t1.LATITUDE > 10 AND t1.LONGITUDE < -50 AND t1.LONGITUDE > -180 LIMIT """ + str(G) + """; """).fetchall()
+    good_centriods = my_cursor.execute("""SELECT t3.LAUNCH_REC_ID, t1.NOTAM_REC_ID, t3.SPACEPORT_REC_ID, t1.LATITUDE, t1.LONGITUDE, t2.CLASSIFICATION, t1.RADIUS_NM FROM notam_centroids AS t1 CROSS JOIN notams AS t2 CROSS JOIN good_notams AS t3 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND t1.NOTAM_REC_ID = t3.NOTAM_REC_ID AND t1.LATITUDE < 80 AND t1.LATITUDE > 10 AND t1.LONGITUDE < -50 AND t1.LONGITUDE > -180 LIMIT """ + str(G) + """; """).fetchall()
 
     gooddf = pd.DataFrame(good_centriods)
-    gooddf.columns = ['REC_ID', 'LATITUDE', 'LONGITUDE', 'CLASSIFICATION', 'RADIUS_NM']
-    
+    gooddf.columns = ['REC_ID_1', 'REC_ID_2', 'REC_ID_3', 'LATITUDE', 'LONGITUDE', 'CLASSIFICATION', 'RADIUS_NM']
+    gooddf['REC_ID'] = list(zip(gooddf.REC_ID_1, gooddf.REC_ID_2, gooddf.REC_ID_3))
     frames2 = [gooddf, space_df]
     good_df = pd.concat(frames2)
     print(good_df.shape[0])
@@ -146,14 +177,14 @@ def good_notam_map(G):
     fig3 = px.scatter_geo(good_gdf,
                         lat=good_gdf.geometry.y,
                         lon=good_gdf.geometry.x,
-                        hover_name="REC_ID",
+                        hover_name='REC_ID',
                         color="CLASSIFICATION", # which column to use to set the color of markers
                         # size="RADIUS_NM", # size of markers
                         projection="natural earth",
-                        title = "NOTAM & Spaceport Locations<br>(Hover for ID)")
+                        title = "Launch & NOTAM Match Locations<br>(Hover for IDs (Launch_ID, NOTAM_ID, Spaceport_ID))")
 
     fig3.update_layout(
-                    title = "NOTAM & Spaceport Locations<br>(Hover for ID)",
+                    title = "Launch & NOTAM Match Locations<br>(Hover for IDs (Launch_ID, NOTAM_ID, Spaceport_ID))",
                     geo = dict(
                         scope='usa',
                         projection_type='albers usa',
@@ -166,16 +197,107 @@ def good_notam_map(G):
     fig3.write_html('./data/good_notam_map.html')
     return fig3.show()
 
-W = 500000
-world_map(W)
+def tfr_notam_map(T):
 
-U = 1000000
-# all_us_map(U)
+    spaceport = my_cursor.execute("""SELECT SPACEPORT_REC_ID, SPACEPORT_NAME, LATITUDE, LONGITUDE FROM spaceports WHERE LATITUDE > 0""").fetchall()
+    space_df = pd.DataFrame(spaceport)
+    space_df.columns = ['REC_ID_1', 'SPACEPORT_NAME', 'LATITUDE', 'LONGITUDE']
+    space_df['CLASSIFICATION'] = 'SPACEPORT'
+    space_df['RADIUS_NM'] = 1
+    space_df['REC_ID'] = list(zip(space_df.REC_ID_1, space_df.SPACEPORT_NAME))
+    # print(space_df.head(3))
 
-G = 1000
-# good_notam_map(G)
+    tfr_query = my_cursor.execute("""SELECT t3.LAUNCH_REC_ID, t3.NOTAM_REC_ID, t4.SPACEPORT_REC_ID, t1.LATITUDE, t1.LONGITUDE, t2.CLASSIFICATION, t1.RADIUS_NM, t4.SPACEPORT_NAME FROM notam_centroids AS t1 CROSS JOIN notams AS t2 CROSS JOIN tfr_notams AS t3 CROSS JOIN spaceports AS t4 WHERE t3.NOTAM_REC_ID = t1.NOTAM_REC_ID AND t3.NOTAM_REC_ID = t2.NOTAM_REC_ID AND t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND t3.LAUNCH_CITY = t4.LOCATION_1 AND t1.LATITUDE < 80 AND t1.LATITUDE > 10 AND t1.LONGITUDE < -50 AND t1.LONGITUDE > -180 LIMIT """ + str(T) + """; """).fetchall()
+
+    tfrdf = pd.DataFrame(tfr_query)
+    tfrdf.columns = ['REC_ID_1', 'REC_ID_2', 'REC_ID_3', 'LATITUDE', 'LONGITUDE', 'CLASSIFICATION', 'RADIUS_NM', 'SPACEPORT_NAME']
+    tfrdf['REC_ID'] = list(zip(tfrdf.REC_ID_1, tfrdf.REC_ID_2, tfrdf.REC_ID_3))
+    frames2 = [tfrdf, space_df]
+    tfr_df = pd.concat(frames2)
+    print(tfr_df.shape[0])
+    # print(tfr_df.head(3))
+
+    tfr_geometry = [Point(xy) for xy in zip(tfr_df['LONGITUDE'], tfr_df['LATITUDE'])]
+    tfr_gdf = GeoDataFrame(tfr_df, geometry=tfr_geometry)
+
+    fig4 = px.scatter_geo(tfr_gdf,
+                        lat=tfr_gdf.geometry.y,
+                        lon=tfr_gdf.geometry.x,
+                        hover_name='REC_ID',
+                        color="SPACEPORT_NAME", # which column to use to set the color of markers
+                        # size="RADIUS_NM", # size of markers
+                        projection="natural earth",
+                        title = "Launch & NOTAM TFR Match Locations<br>(Hover for IDs (Launch_ID, NOTAM_ID, Spaceport_ID))")
+
+    fig4.update_layout(
+                    title = "Launch & NOTAM TFR Match Locations<br>(Hover for IDs (Launch_ID, NOTAM_ID, Spaceport_ID))",
+                    geo = dict(
+                        scope='usa',
+                        projection_type='albers usa',
+                        showland = True,
+                        landcolor = "rgb(250, 250, 250)",
+                        subunitcolor = "rgb(217, 217, 217)",
+                        countrycolor = "rgb(217, 217, 217)",
+                        countrywidth = 0.5,
+                        subunitwidth = 0.5))
+    fig4.write_html('./data/tfr_notam_map.html')
+    return fig4.show()
+
+def tfr_year_map(my_connect,  my_cursor):
+    sql = """ select t1.LAUNCH_REC_ID, t1.NOTAM_REC_ID, t1.START_DATE, t2.LATITUDE, t2.LONGITUDE FROM tfr_notams AS t1 CROSS JOIN notam_centroids AS t2 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID """
+    launches_df = pd.read_sql_query(sql, my_connect)
+    launches_df.columns = ['REC_ID_1', 'REC_ID_2', 'START_DATE', 'LATITUDE', 'LONGITUDE']
+
+    # reformat Launch datetime format 2013-01-26 22:00:00 to Year 2013
+    launches_df['LAUNCH_YEAR'] = [ datetime.datetime.strptime(x, "%m/%d/%y %H:%M").strftime("%Y") for x in launches_df['START_DATE'] ]
+    launches_df['REC_ID'] = list(zip(launches_df.REC_ID_1, launches_df.REC_ID_2))
+
+    launch_tfr_geometry = [Point(xy) for xy in zip(launches_df['LONGITUDE'], launches_df['LATITUDE'])]
+    launch_tfr_gdf = GeoDataFrame(launches_df, geometry=launch_tfr_geometry)
+    
+    fig5 = px.scatter_geo(launch_tfr_gdf,
+                        lat=launch_tfr_gdf.geometry.y,
+                        lon=launch_tfr_gdf.geometry.x,
+                        hover_name='REC_ID',
+                        color="LAUNCH_YEAR", # which column to use to set the color of markers
+                        # size="RADIUS_NM", # size of markers
+                        projection="natural earth",
+                        title = "Launch & NOTAM TFR Match by Year<br>(Hover for IDs (Launch_ID, NOTAM_ID))")
+
+    fig5.update_layout(
+                    title = "Launch & NOTAM TFR Match by Year<br>(Hover for IDs (Launch_ID, NOTAM_ID))",
+                    geo = dict(
+                        scope='usa',
+                        projection_type='albers usa',
+                        showland = True,
+                        landcolor = "rgb(250, 250, 250)",
+                        subunitcolor = "rgb(217, 217, 217)",
+                        countrycolor = "rgb(217, 217, 217)",
+                        countrywidth = 0.5,
+                        subunitwidth = 0.5))
+    fig5.write_html('./data/tfr_year_map.html')
+    return fig5.show()
 
 
-# world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-# gdf.plot(ax=world[world.continent == 'North America'].plot(figsize=(25, 25)), marker='o', color='b', markersize=1)
-# plt.show()
+def main():
+    my_connect = sqlite3.Connection("./data/svo_db_20201027.db")
+    my_cursor = my_connect.cursor()
+    
+    W = 500000
+    # world_map(W)
+
+    U = 1000000
+    # all_us_map(U)
+
+    G = 1000
+    # good_notam_map(G)
+
+    T = 1000
+    # tfr_notam_map(T)
+
+    tfr_year_map(my_connect,  my_cursor)
+    
+    my_connect.close()
+
+if __name__ == "__main__":
+    main()

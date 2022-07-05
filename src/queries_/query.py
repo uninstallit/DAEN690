@@ -120,7 +120,7 @@ def main():
     query_embeddings = fromBuffer(query_data[:, 8])
     query_data = query_data[:, 2:-1].astype("float32")
 
-    base_network = tf.keras.models.load_model(root + "/src/saved_models_/sm1_model")
+    base_network = tf.keras.models.load_model(root + "/src/saved_models_/sm6_model")
 
     cosine_similarity = tf.keras.metrics.CosineSimilarity()
     anch_prediction = base_network.predict([notam_data, notam_embeddings])
@@ -146,7 +146,7 @@ def main():
         similarity = cosine_similarity.result().numpy()
         ms_selected.append((query_ids[idx], similarity))
 
-    ms_selected = sorted(ms_selected, key=lambda x: x[1], reverse=False)[:10]
+    ms_selected = sorted(ms_selected, key=lambda x: x[1], reverse=True)[:10]
     
     print("\nSemantic Search")
     for notam_rec_id, similarity in ss_selected:

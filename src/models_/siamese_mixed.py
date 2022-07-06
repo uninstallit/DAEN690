@@ -26,7 +26,7 @@ class SiameseModel(tf.keras.Model):
        L(A, P, N) = max(‖f(A) - f(P)‖² - ‖f(A) - f(N)‖² + margin, 0)
     """
 
-    def __init__(self, siamese_network, margin=0.5):
+    def __init__(self, siamese_network, margin=1.0):
         super(SiameseModel, self).__init__()
         self.siamese_network = siamese_network
         self.margin = margin
@@ -37,8 +37,8 @@ class SiameseModel(tf.keras.Model):
 
     def _compute_loss(self, data):
         ap_distance, an_distance = self.siamese_network(data)
-        loss = ap_distance - an_distance
-        loss = tf.maximum(loss + self.margin, 0.0)
+        # loss = (1 - an_distance) + tf.maximum(ap_distance + self.margin, 0.0)
+        loss = tf.maximum(ap_distance - an_distance + self.margin, 0.0)
         return loss
 
     def train_step(self, data):
@@ -68,39 +68,41 @@ class DistanceLayer(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.loss = tf.keras.losses.CosineSimilarity(axis=1)
 
     def call(self, anchor, positive, negative):
-        ap_distance = tf.reduce_sum(tf.square(anchor - positive), -1)
-        an_distance = tf.reduce_sum(tf.square(anchor - negative), -1)
+        # l2 loss is not appropriate
+        # ap_distance = tf.reduce_sum(tf.square(anchor - positive), -1)
+        # an_distance = tf.reduce_sum(tf.square(anchor - negative), -1)
+        ap_distance = self.loss(anchor, positive)
+        an_distance = self.loss(anchor, negative)
         return (ap_distance, an_distance)
 
 
 def get_base_network(mixed_input_shape, embedding_input_shape):
-
     # mixed data
     mixed_inputs = tf.keras.Input(shape=mixed_input_shape, name="mixed")
-    x = tf.keras.layers.Dense(384, activation="relu")(mixed_inputs)
+    x = tf.keras.layers.Dense(128, activation="relu")(mixed_inputs)
     x = tf.keras.layers.Dropout(0.2)(x)
-    x = tf.keras.layers.Dense(128, activation="relu")(x)
+    x = tf.keras.layers.Dense(256, activation="relu")(x)
     x = tf.keras.layers.Dropout(0.2)(x)
     mixed_outputs = tf.keras.layers.Dense(384, activation="sigmoid")(x)
 
     # embeddings
     embedding_inputs = tf.keras.Input(shape=embedding_input_shape, name="text")
-    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128, return_sequences=True))(
+    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True))(
         embedding_inputs
     )
-    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128))(x)
-    embedding_outputs = tf.keras.layers.Dense(384, activation="sigmoid")(x)
-    # embedding_outputs = tf.keras.layers.Flatten()(embedding_inputs)
+    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64))(x)
+    embedding_outputs = tf.keras.layers.Dense(384, activation="linear")(x)
 
     # combine branches
     concat = tf.keras.layers.concatenate([mixed_outputs, embedding_outputs])
     x = tf.keras.layers.Dense(384, activation="relu")(concat)
     x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(384, activation="relu")(concat)
-    x = tf.keras.layers.Dropout(0.5)(x)
-    outputs = tf.keras.layers.Dense(384, activation="sigmoid")(x)
+    x = tf.keras.layers.Dense(384, activation="relu")(x)
+    outputs = tf.keras.layers.Dense(384, activation="linear")(x)
+    # outputs = tf.keras.layers.Lambda(lambda v: tf.math.l2_normalize(v, axis=1))(x)
 
     # mixed model
     base_model = tf.keras.Model(
@@ -186,11 +188,11 @@ def main():
             negative_embd_dataset,
         )
     )
-    # dataset = dataset.shuffle(buffer_size=1024)
+    dataset = dataset.shuffle(buffer_size=1024)
     assert len(anchor_data) == len(anchor_embeddings)
 
-    train_dataset = dataset.take(round(len(anchor_data) * 0.75))
-    val_dataset = dataset.skip(round(len(anchor_data) * 0.75))
+    train_dataset = dataset.take(round(len(anchor_data) * 0.50))
+    val_dataset = dataset.skip(round(len(anchor_data) * 0.50))
 
     train_dataset = train_dataset.batch(32, drop_remainder=False)
     train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
@@ -208,9 +210,9 @@ def main():
 
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
-    history = siamese_model.fit(train_dataset, epochs=100, validation_data=val_dataset)
+    history = siamese_model.fit(train_dataset, epochs=10, validation_data=val_dataset)
 
-    base_network.save(root + "/src/saved_models_/sm3_model")
+    base_network.save(root + "/src/saved_models_/smy_model")
 
     # *** inference ***
 
@@ -224,11 +226,14 @@ def main():
     other_prediction = base_network.predict([other_data, other_embd])
 
     cosine_similarity = tf.keras.metrics.CosineSimilarity()
-    positive_similarity = cosine_similarity(anch_prediction, anch_prediction)
-    print("Positive similarity:", positive_similarity.numpy())
 
-    negative_similarity = cosine_similarity(anch_prediction, other_prediction)
-    print("Negative similarity", negative_similarity.numpy())
+    cosine_similarity.reset_state()
+    cosine_similarity.update_state(anch_prediction, anch_prediction)
+    print("Positive similarity:", cosine_similarity.result().numpy())
+
+    cosine_similarity.reset_state()
+    cosine_similarity.update_state(anch_prediction, other_prediction)
+    print("Negative similarity", cosine_similarity.result().numpy())
 
     plt.plot(history.history["loss"])
     plt.plot(history.history["val_loss"])

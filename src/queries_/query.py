@@ -150,7 +150,7 @@ def query(conn, spaceports_dict, launch, tfr_df):
         cosine_similarity.reset_state()
         cosine_similarity.update_state(anch_prediction, other_prediction)
         similarity = cosine_similarity.result().numpy()
-        ms_selected.append((query_ids[idx], similarity))
+        ms_selected.append((notam_rec_id, similarity))
 
     ms_selected = sorted(ms_selected, key=lambda x: x[1], reverse=True)[:top_picks] 
     print([(rec_id, s) for rec_id, s in ms_selected])
@@ -202,7 +202,7 @@ def main():
         if len(matched_tfr_df):
             tfr_rec_id = matched_tfr_df.iloc[0]['NOTAM_REC_ID']
             tfr_df = notams_df[notams_df["NOTAM_REC_ID"] == tfr_rec_id]
-            if launch_rec_id == 391: ##### TODO remove test
+            if launch_rec_id == 391 or launch_rec_id == 284: ##### TODO remove test
                (launch_rec_id, ss_matches, ms_matches) = query(conn, spaceports_dict, launch, tfr_df)
                ss_matches.insert(0, "LAUNCHES_REC_ID", ss_matches.apply(lambda row : launch_rec_id, axis = 1))
                ss_matches.insert(1, "LAUNCH_DATE", ss_matches.apply(lambda row : launch['LAUNCH_DATE'], axis = 1))
@@ -214,7 +214,8 @@ def main():
     ss_results_df = pd.concat(ss_results)
     ms_results_df = pd.concat(ms_results)
 
-    # TODO take care (sanjiv's step3) - need to do a final filter to get NOTAMs that the model was not able to select since the unselected list may contain the same account_id with others 
+    # TODO take care (sanjiv's step3) - need to justify the low score notam list if they have the start/end date and same account_id with others 
+    # then they are related notams
 
     cols=['LAUNCHES_REC_ID','NOTAM_REC_ID','MIN_ALT_K','MAX_ALT_K',
           'LAUNCH_DATE','ISSUE_DATE', 'POSSIBLE_START_DATE','POSSIBLE_END_DATE',

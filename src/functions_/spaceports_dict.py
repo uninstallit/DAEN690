@@ -6,6 +6,7 @@ import numpy as np
 # United States has 22 Air Route Traffic Control Centers (ARTCC): https://en.wikipedia.org/wiki/List_of_U.S._Air_Route_Traffic_Control_Centers#
 # Airport Data to find ARTCC for spaceports: https://www.airport-data.com 
 # ICAO https://www.faa.gov/air_traffic/publications/atpubs/locid_html/chap1_section_6_paragraph_H.html
+# https://en.wikipedia.org/wiki/List_of_U.S._Air_Route_Traffic_Control_Centers
 
 # store artcc as a string for each spaceport ready for sql to use
 spaceport_artcc_dict = {} 
@@ -22,13 +23,13 @@ spaceport_artcc_dict[11] = "('ZLA','KZLA')"                       # Mojave	Calif
 spaceport_artcc_dict[12] = "('ZFW','KZFW','KDFW')"                # Burns Flat	Oklahoma
 spaceport_artcc_dict[13] = "('ZHN','PHNL')"                       # Kekaha	Hawaii
 spaceport_artcc_dict[14] = "('ZAN','KZAN','PAZA')"                # Kodiak Island	Alaska
-spaceport_artcc_dict[15] = "('ZAN', 'KZAN')"                      # Fairbanks	Alaska
+spaceport_artcc_dict[15] = "('ZAN', 'KZAN', 'PAZA')"              # Fairbanks	Alaska
 spaceport_artcc_dict[16] = "('PKRO','PKWA','ROI')"                # Kwajalein Atoll	Marshall Islands. No ARTCC found far land
-spaceport_artcc_dict[17] = "('ZHN', 'PHNL')"                      # Wake Island	Marshall Islands, Honolulu
+spaceport_artcc_dict[17] = "('ZHN', 'PHNL', 'PHZH')"                      # Wake Island	Marshall Islands, Honolulu
 spaceport_artcc_dict[18] = "('ZMA','KZMA','ZJX','KZJX')"          # Titusville	Florida
 spaceport_artcc_dict[19] = "('ZAB', 'KZAB')"                      # Truth or Consequences	New Mexico
 spaceport_artcc_dict[20] = "('ZJX','KZJX')"                       # Woodbine	Georgia
-spaceport_artcc_dict[21] = "('ZFW','ZFW')"                        # McGregor	Texas
+spaceport_artcc_dict[21] = "('ZFW','KZFW')"                        # McGregor	Texas
 spaceport_artcc_dict[22] = "('ZHU','KZHU')"                       # Brownsville	Texas
 spaceport_artcc_dict[23] = "('ZLA','KZLA')"                       # Lompoc	California
 spaceport_artcc_dict[24] = "('ZAB', 'KZAB')"                      # Las Cruces	New Mexico

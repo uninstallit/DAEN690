@@ -5,8 +5,8 @@ import json
 import copy
 import random
 import matplotlib.pyplot as plt
-from numpy import genfromtxt
 from itertools import permutations
+from numpy.random import default_rng
 
 import sys
 import os
@@ -123,22 +123,23 @@ def fromBuffer(byte_embeddings):
 
 
 def get_triplet_index_from_good_bad():
-    good_df = pd.read_csv(
-        root + "/data/good_notams_list_2022.06.28.csv", sep=","
-    )
-    bad_df = pd.read_csv(
-        root + "/data/bad_notams_list_2022.06.28.csv", sep=","
-    )
-    good_data = np.squeeze(good_df[['notam_rec_id']].to_numpy())
-    bad_data = np.squeeze(bad_df[['notam_rec_id']].to_numpy())
+    good_df = pd.read_csv(root + "/data/good_notams_list_2022.07.03.csv", sep=",")
+    bad_df = pd.read_csv(root + "/data/bad_notams_list_2022.07.03.csv", sep=",")
+    good_data = np.squeeze(good_df[["notam_rec_id"]].to_numpy())
+    bad_data = np.squeeze(bad_df[["notam_rec_id"]].to_numpy())
     perms = permutations(good_data, 2)
 
-    anchor_index = []
-    positive_index = []
-    negative_index = []
+    anchor = []
+    positive = []
+    negative_one = []
+    negative_two = []
+    rng = default_rng()
     for p in perms:
-        anchor_index.append(p[0])
-        positive_index.append(p[1])
-    negative_index = np.random.choice(bad_data, size=len(anchor_index), replace=True).tolist()
-    return (anchor_index, positive_index, negative_index)
-
+        anchor.append(p[0])
+        positive.append(p[1])
+    negatives = rng.choice(bad_data, size=2 * len(anchor), replace=True).tolist()
+    negative_one = negatives[: len(anchor)]
+    negative_two = negatives[len(anchor) :]
+    assert len(anchor) == len(negative_one)
+    assert len(negative_one) == len(negative_two)
+    return (anchor, positive, negative_one, negative_two)

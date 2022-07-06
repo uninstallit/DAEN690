@@ -39,8 +39,10 @@ class SiameseModel(tf.keras.Model):
         return self.siamese_network(inputs)
 
     def _compute_loss(self, data):
-        ap_distance, an_distance = self.siamese_network(data)
-        loss = tf.maximum(ap_distance - an_distance + self.margin, 0.0)
+        ap_distance, an_distance_one, an_distance_two = self.siamese_network(data)
+        loss_one = tf.maximum(ap_distance - an_distance_one + self.margin, 0.0)
+        loss_two = tf.maximum(ap_distance - an_distance_two + self.margin, 0.0)
+        loss = loss_one + loss_two
         return loss
 
     def train_step(self, data):
@@ -72,10 +74,11 @@ class DistanceLayer(tf.keras.layers.Layer):
         super().__init__(**kwargs)
         self.loss = tf.keras.losses.CosineSimilarity(axis=1)
 
-    def call(self, anchor, positive, negative):
+    def call(self, anchor, positive, negative_one, negative_two):
         ap_distance = self.loss(anchor, positive)
-        an_distance = self.loss(anchor, negative)
-        return (ap_distance, an_distance)
+        an_distance_one = self.loss(anchor, negative_one)
+        an_distance_two = self.loss(anchor, negative_two)
+        return (ap_distance, an_distance_one, an_distance_two)
 
 
 def get_base_network(input_shape):
@@ -96,14 +99,16 @@ def get_base_network(input_shape):
 def get_siamese_network(input_shape, base_model):
     anchor_input = tf.keras.layers.Input(name="anchor", shape=input_shape)
     positive_input = tf.keras.layers.Input(name="positive", shape=input_shape)
-    negative_input = tf.keras.layers.Input(name="negative", shape=input_shape)
+    negative_one_input = tf.keras.layers.Input(name="negative_one", shape=input_shape)
+    negative_two_input = tf.keras.layers.Input(name="negative_two", shape=input_shape)
     distances = DistanceLayer()(
         base_model(anchor_input),
         base_model(positive_input),
-        base_model(negative_input),
+        base_model(negative_one_input),
+        base_model(negative_two_input),
     )
     siamese_network = tf.keras.Model(
-        inputs=[anchor_input, positive_input, negative_input],
+        inputs=[anchor_input, positive_input, negative_one_input, negative_two_input],
         outputs=distances,
         name="siamese",
     )
@@ -114,18 +119,30 @@ def main():
 
     anchor_data = np.load("./data/anchor_data.npy", allow_pickle=True)
     positive_data = np.load("./data/positive_data.npy", allow_pickle=True)
-    negative_data = np.load("./data/negative_data.npy", allow_pickle=True)
+    negative_one_data = np.load("./data/negative_data.npy", allow_pickle=True)
+    negative_two_data = np.load("./data/negative_data.npy", allow_pickle=True)
 
     anchor_embeddings = np.expand_dims(fromBuffer(anchor_data[:, 8]), -1)
     positive_embeddings = np.expand_dims(fromBuffer(positive_data[:, 8]), -1)
-    negative_embeddings = np.expand_dims(fromBuffer(negative_data[:, 8]), -1)
+    negative_one_embeddings = np.expand_dims(fromBuffer(negative_one_data[:, 8]), -1)
+    negative_two_embeddings = np.expand_dims(fromBuffer(negative_two_data[:, 8]), -1)
 
     anchor_embd_dataset = tf.data.Dataset.from_tensor_slices(anchor_embeddings)
     positive_embd_dataset = tf.data.Dataset.from_tensor_slices(positive_embeddings)
-    negative_embd_dataset = tf.data.Dataset.from_tensor_slices(negative_embeddings)
+    negative_embd_one_dataset = tf.data.Dataset.from_tensor_slices(
+        negative_one_embeddings
+    )
+    negative_embd_two_dataset = tf.data.Dataset.from_tensor_slices(
+        negative_two_embeddings
+    )
 
     dataset = tf.data.Dataset.zip(
-        (anchor_embd_dataset, positive_embd_dataset, negative_embd_dataset)
+        (
+            anchor_embd_dataset,
+            positive_embd_dataset,
+            negative_embd_one_dataset,
+            negative_embd_two_dataset,
+        )
     )
     dataset = dataset.shuffle(buffer_size=1024)
 
@@ -153,7 +170,7 @@ def main():
     # *** inference ***
 
     anch = np.expand_dims(positive_embeddings[4], 0)
-    other = np.expand_dims(negative_embeddings[4], 0)
+    other = np.expand_dims(negative_one_embeddings[4], 0)
 
     anch_prediction = base_network.predict(anch)
     other_prediction = base_network.predict(other)

@@ -13,7 +13,7 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(root)
 
-from functions_.functions import get_triplet_index
+from functions_.functions import get_triplet_index_from_good_bad
 from pipelines_.pipelines import features_pipeline
 
 
@@ -37,8 +37,13 @@ def main():
     notams_df["LOCATION_CODE"] = notams_df["LOCATION_CODE"].fillna("UNKNOWN")
     notams_df["ACCOUNT_ID"] = notams_df["ACCOUNT_ID"].fillna("UNKNOWN")
 
-    # create triplet indexes
-    (anchor_index, positive_index, negative_index) = get_triplet_index()
+    # create quadruplet indexes
+    (
+        anchor_index,
+        positive_index,
+        negative_index_one,
+        negative_index_two,
+    ) = get_triplet_index_from_good_bad()
     notams_dict = {
         row_series["NOTAM_REC_ID"]: row_series for _, row_series in notams_df.iterrows()
     }
@@ -46,11 +51,20 @@ def main():
     anchor_series_list = [notams_dict[notam_rec_id] for notam_rec_id in anchor_index]
     anchor_df = pd.concat(anchor_series_list, axis=1).transpose()
 
-    positive_series_list = [notams_dict[notam_rec_id] for notam_rec_id in positive_index]
+    positive_series_list = [
+        notams_dict[notam_rec_id] for notam_rec_id in positive_index
+    ]
     positive_df = pd.concat(positive_series_list, axis=1).transpose()
 
-    negative_series_list = [notams_dict[notam_rec_id] for notam_rec_id in negative_index]
-    negative_df = pd.concat(negative_series_list, axis=1).transpose()
+    negative_series_list_one = [
+        notams_dict[notam_rec_id] for notam_rec_id in negative_index_one
+    ]
+    negative_one_df = pd.concat(negative_series_list_one, axis=1).transpose()
+
+    negative_series_list_two = [
+        notams_dict[notam_rec_id] for notam_rec_id in negative_index_two
+    ]
+    negative_two_df = pd.concat(negative_series_list_two, axis=1).transpose()
 
     # run features pipeline
     features_pipeline.set_params(**{"idx_7__column_indexes": [2, 3]})
@@ -78,26 +92,19 @@ def main():
 
     anchor_data = features_pipeline.fit_transform(anchor_df)
     positive_data = features_pipeline.fit_transform(positive_df)
-    negative_data = features_pipeline.fit_transform(negative_df)
-
-    # ensure datasets have same length
-    data_lengths = np.array(
-        [anchor_data.shape[0], positive_data.shape[0], negative_data.shape[0]]
-    )
-    min_length = data_lengths.min()
-
-    anchor_data = anchor_data[:min_length]
-    positive_data = positive_data[:min_length]
-    negative_data = negative_data[:min_length]
+    negative_one_data = features_pipeline.fit_transform(negative_one_df)
+    negative_two_data = features_pipeline.fit_transform(negative_two_df)
 
     print(anchor_data.shape)
     print(positive_data.shape)
-    print(negative_data.shape)
+    print(negative_one_data.shape)
+    print(negative_two_data.shape)
 
     # save data to file
     np.save("./data/anchor_data", anchor_data)
     np.save("./data/positive_data", positive_data)
-    np.save("./data/negative_data", negative_data)
+    np.save("./data/negative_one_data", negative_one_data)
+    np.save("./data/negative_two_data", negative_two_data)
 
 
 if __name__ == "__main__":

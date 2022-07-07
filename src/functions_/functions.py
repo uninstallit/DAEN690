@@ -124,10 +124,10 @@ def fromBuffer(byte_embeddings):
 
 def get_triplet_index_from_good_bad():
     good_df = pd.read_csv(
-        root + "/data/good_notams_list_2022.06.28.csv", sep=","
+        root + "/data/good_notams_list_2022.07.03.csv", sep=","
     )
     bad_df = pd.read_csv(
-        root + "/data/bad_notams_list_2022.06.28.csv", sep=","
+        root + "/data/bad_notams_list_2022.07.03.csv", sep=","
     )
     good_data = np.squeeze(good_df[['notam_rec_id']].to_numpy())
     bad_data = np.squeeze(bad_df[['notam_rec_id']].to_numpy())
@@ -136,9 +136,10 @@ def get_triplet_index_from_good_bad():
     anchor_index = []
     positive_index = []
     negative_index = []
+    rng = np.random.default_rng()
     for p in perms:
         anchor_index.append(p[0])
         positive_index.append(p[1])
-    negative_index = np.random.choice(bad_data, size=len(anchor_index), replace=True).tolist()
+    negative_index = rng.choice(bad_data, size=len(anchor_index), replace=True).tolist()
     return (anchor_index, positive_index, negative_index)
 

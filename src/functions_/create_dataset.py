@@ -13,7 +13,7 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(root)
 
-from functions_.functions import get_triplet_index
+from functions_.functions import get_triplet_index_from_good_bad
 from pipelines_.pipelines import features_pipeline
 
 
@@ -38,7 +38,7 @@ def main():
     notams_df["ACCOUNT_ID"] = notams_df["ACCOUNT_ID"].fillna("UNKNOWN")
 
     # create triplet indexes
-    (anchor_index, positive_index, negative_index) = get_triplet_index()
+    (anchor_index, positive_index, negative_index) = get_triplet_index_from_good_bad()
     notams_dict = {
         row_series["NOTAM_REC_ID"]: row_series for _, row_series in notams_df.iterrows()
     }
@@ -81,15 +81,6 @@ def main():
     negative_data = features_pipeline.fit_transform(negative_df)
 
     # ensure datasets have same length
-    data_lengths = np.array(
-        [anchor_data.shape[0], positive_data.shape[0], negative_data.shape[0]]
-    )
-    min_length = data_lengths.min()
-
-    anchor_data = anchor_data[:min_length]
-    positive_data = positive_data[:min_length]
-    negative_data = negative_data[:min_length]
-
     print(anchor_data.shape)
     print(positive_data.shape)
     print(negative_data.shape)

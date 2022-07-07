@@ -137,15 +137,20 @@ def query(conn, spaceports_dict, launch, tfr_df):
         ss_selected.append((notam_rec_id, similarity_score.numpy()))
     ss_selected = sorted(ss_selected, key=lambda x: x[1], reverse=True)[:top_picks]
   
-    # base_network
-    base_network = tf.keras.models.load_model(root + "/src/saved_models_/sm1_model")
+    # text model
+    # base_network = tf.keras.models.load_model(root + "/src/saved_models_/smx_model")
+
+    # mixed model  
+    base_network = tf.keras.models.load_model(root + "/src/saved_models_/smy_model")
     cosine_similarity = tf.keras.metrics.CosineSimilarity()
+    # anch_prediction = base_network.predict(tfr_embeddings)
     anch_prediction = base_network.predict([tfr_data, tfr_embeddings])
    
     ms_selected = []
     for idx, notam_rec_id in enumerate(query_ids):
         _query_data = np.expand_dims(query_data[idx], 0)
         _query_embd = np.expand_dims(query_embeddings[idx], axis=(0, -1))
+        # other_prediction = base_network.predict(_query_embd)
         other_prediction = base_network.predict([_query_data, _query_embd])
         cosine_similarity.reset_state()
         cosine_similarity.update_state(anch_prediction, other_prediction)
@@ -192,7 +197,7 @@ def main():
     
     spaceports_dict = get_spaceports_dict(conn)
 
-    tfr_notams_df = pd.read_csv(root + "/data/tfr_notams.csv" , engine="python" )
+    tfr_notams_df = pd.read_csv(root + "/data/tfr_notams.0704.csv" , engine="python" )
 
     ss_results = []
     ms_results = []
@@ -202,7 +207,7 @@ def main():
         if len(matched_tfr_df):
             tfr_rec_id = matched_tfr_df.iloc[0]['NOTAM_REC_ID']
             tfr_df = notams_df[notams_df["NOTAM_REC_ID"] == tfr_rec_id]
-            if launch_rec_id == 391 or launch_rec_id == 284: ##### TODO remove test
+            if launch_rec_id == 284: ##### TODO remove test
                (launch_rec_id, ss_matches, ms_matches) = query(conn, spaceports_dict, launch, tfr_df)
                ss_matches.insert(0, "LAUNCHES_REC_ID", ss_matches.apply(lambda row : launch_rec_id, axis = 1))
                ss_matches.insert(1, "LAUNCH_DATE", ss_matches.apply(lambda row : launch['LAUNCH_DATE'], axis = 1))

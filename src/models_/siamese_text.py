@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 current = os.path.dirname(os.path.realpath(__file__))
 
@@ -79,17 +79,15 @@ class DistanceLayer(tf.keras.layers.Layer):
 
 
 def get_base_network(input_shape):
-    embedding_inputs = tf.keras.Input(shape=input_shape, name="text")
+    inputs = tf.keras.Input(shape=input_shape, name="text")
     x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True))(
-        embedding_inputs
+        inputs
     )
     x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64))(x)
     x = tf.keras.layers.Dense(384, activation="relu")(x)
     x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(384, activation="relu")(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
-    modifier_outputs = tf.keras.layers.Dense(384, activation="linear")(x)
-    modifier_model = tf.keras.Model(embedding_inputs, modifier_outputs)
+    outputs = tf.keras.layers.Dense(384, activation="linear")(x)
+    modifier_model = tf.keras.Model(inputs, outputs)
     return modifier_model
 
 

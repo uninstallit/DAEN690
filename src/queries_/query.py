@@ -229,8 +229,8 @@ def main():
     sql = """ SELECT * FROM notam_centroids """
     centroid_df = pd.read_sql_query(sql, conn)
     spaceports_dict = get_spaceports_dict(conn)
-    tfr_notams_df = pd.read_csv(root + "/data/tfr_notams.0709.csv" , engine="python" )
-    print(f'Total number of launches has TFR len:{len(tfr_notams_df)}')
+    input_tfrs_df = pd.read_csv(root + "/data/tfr_notams.0709.csv" , engine="python" )
+    print(f'Total number of launches has TFR len:{len(input_tfrs_df)}')
 
     # list launch_rec_id you wish to run launch. Empty array will run all 104 launches having TFR
     launch_ids_param = [391,284]
@@ -239,7 +239,7 @@ def main():
     debug_flag = False
 
     start = time.time()
-    results = nlp_match(conn, centroid_df, tfr_notams_df, notams_df, launch_ids_param, top_pick_param, radius_param, debug_flag)
+    results = nlp_match(conn, centroid_df, input_tfrs_df, notams_df, launch_ids_param, top_pick_param, radius_param, debug_flag)
     end = time.time()   
     print(f'Elapse time: {str(timedelta(seconds=end-start))}')  
 
@@ -256,19 +256,19 @@ def main():
         launch_location, launch_state_location = get_launch_location(spaceports_dict, spaceport_rec_id)
     
         print(f'\n---Semantic Search Model')
-        print(f'Launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
+        print(f'Launch_id: {launch_rec_id} date: {launch_date} {launch_location} {launch_state_location}')
         print(f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE'] }")
         print(f'Related NOTAMs:')
         print(ss_matches_df)
 
         print(f'\n---Siamese Text Model')
-        print(f'Launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
+        print(f'Launch_id: {launch_rec_id} date: {launch_date} {launch_location} {launch_state_location}')
         print(f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE']}")
         print(f'Related NOTAMs:')
         print(ts_matches_df)
 
         print(f'\n---Siamese Mix Model')
-        print(f'Launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
+        print(f'Launch_id: {launch_rec_id} date: {launch_date} {launch_location} {launch_state_location}')
         print(f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE'] }")
         print(f'Related NOTAMs:')
         print(ms_matches_df)

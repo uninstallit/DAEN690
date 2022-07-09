@@ -15,8 +15,7 @@ from functions_.spaceports_dict import get_launch_location, get_spaceports_dict,
 
 spaceports_dict = get_spaceports_dict()
 
-##### Original provided keywords
-exclusion_words = """ (obst* OR fire OR unmanned OR crane OR uas OR aerial OR drill OR installed OR 
+exclusion_words = """obst* OR fire OR unmanned OR crane OR uas OR aerial OR drill OR installed OR 
                             terminal OR parking OR rwy OR taxi OR twy OR hangar OR chemical OR pavement OR 
                             firing OR "out of service" OR volcan OR turbine OR flare OR wx OR weather OR 
                             aerodrome OR apron OR tower OR hospital OR covid OR medical OR copter OR 
@@ -25,12 +24,7 @@ exclusion_words = """ (obst* OR fire OR unmanned OR crane OR uas OR aerial OR dr
                             dropzone OR runway OR wind OR aerobatic OR airfield OR model  OR 
                             para*  OR parachute OR jumpers OR paradrops OR 
                             glide OR tcas OR accident OR investigation OR training OR 
-                            approach OR explosion OR explosive OR demolitions)"""
-
-# inclusion_words = """ launch OR space OR 91.143 OR "ATTENTION AIRLINE DISPATCHERS" OR "HAZARD AREA" 
-#                      OR "STNR ALT" OR "STNR ALTITUDE" OR "STATIONARY ALT*" 
-#                      OR "TEMPORARY FLIGHT RESTRICTION" OR "TEMPORARY FLT RESTRICTION*" OR "FLIGHT REST*" OR TFR """
-####################
+                            approach OR explosion OR explosive OR demolitions"""
 
 exclusion_list  =[ 'obst','obstruct','obstn', 'obstruction',
             'fire', 'unmanned', 'crane', 'uas', 'aerial', 'drill', 'installed',
@@ -43,6 +37,7 @@ exclusion_list  =[ 'obst','obstruct','obstn', 'obstruction',
             'jumpers','paradrops','glide','tcas','accident','investigation','training' 
             'approach', 'explosion', 'explosive', 'demolition','demolitions']
 
+# use in finding TFR notams
 exclusions = """ NOT (obst* OR fire OR unmanned OR crane OR uas OR aerial OR drill OR installed OR 
                             terminal OR parking OR rwy OR taxi OR twy OR hangar OR chemical OR pavement OR 
                             firing OR "out of service" OR volcan OR turbine OR flare OR wx OR weather OR 
@@ -61,6 +56,7 @@ inclusions = """launch OR space OR "91*143" OR "attention airline dispatchers" O
             OR rocket OR missile OR canaveral OR kennedy OR nasa OR antares OR orion OR atlas
             OR zenit OR falcon OR dragon OR spaceship OR minuteman OR trident """
 
+# for finding TFR notams
 search1 = """(launch {exclusions})
             OR (space {exclusions}) 
             OR (rocket {exclusions}) OR (missile {exclusions}) OR (canaveral {exclusions}) OR (kennedy {exclusions}) OR (nasa {exclusions} )
@@ -68,6 +64,7 @@ search1 = """(launch {exclusions})
             OR (dragon {exclusions}) OR (spaceship {exclusions}) OR (minuteman {exclusions}) OR (trident {exclusions}) 
             """.format(exclusions=exclusions)
 
+# for generate good notams
 search2 = """(launch {exclusions})
             OR (space {exclusions}) 
             OR ("91*143" {exclusions}) 
@@ -126,94 +123,6 @@ def convert_str_datetime_unix_datetime(date_time_str):
     date_format = "%Y-%m-%d %H:%M:%S"
     date_time_obj = datetime.strptime(date_time_str, date_format)
     return datetime.timestamp(date_time_obj)
-
-def filter_out_exclusion_words(notams_df):
-    keep_notam_indx =[]
-    for indx, notam in notams_df.iterrows():
-        e_code = notam['E_CODE_LC']
-        e_code_list = e_code.split(' ')
-        if any(word in e_code_list for word in exclusion_list):
-            continue
-        else:
-            keep_notam_indx.append(indx)
-
-    # notams_df = notams_df.iloc[keep_notam_indx]
-    notams_df = notams_df.filter(items = keep_notam_indx, axis=0)
-    return notams_df
-
-def select_notams_with_exclusion_words(notams_df):
-    keep_notam_indx =[]
-    for indx, notam in notams_df.iterrows():
-        e_code = notam['E_CODE_LC']
-        e_code_list = e_code.split(' ')
-        if any(word in e_code_list for word in exclusion_list):
-            keep_notam_indx.append(indx)   
-
-    notams_df = notams_df.filter(items = keep_notam_indx, axis=0)
-    return notams_df
-
-def get_active_period(notams_df):
-    start = float('inf')
-    end = float('-inf')
-    start_date_str = ''
-    end_date_str = ''
-    for _, notam in notams_df.iterrows():
-        start_date = notam['POSSIBLE_START_DATE']
-        end_date = notam['POSSIBLE_END_DATE']
-        start_date_unix = convert_str_datetime_unix_datetime(start_date)
-        end_time_unix = convert_str_datetime_unix_datetime(end_date)
-        if start_date_unix < start:
-            start = start_date_unix
-            start_date_str = start_date
-        if end_time_unix > end:
-            end = end_time_unix
-            end_date_str = end_date
-
-    return (start_date_str, end_date_str)
-
-def filter_active_period_notams(notams_step3_df):
-    keep_notams_idx = []
-    active_start_dates = notams_step3_df['POSSIBLE_START_DATE'].to_numpy()
-    active_end_dates = notams_step3_df['POSSIBLE_END_DATE'].to_numpy()
-    for indx, notam in notams_step3_df.iterrows():
-        if (notam['POSSIBLE_START_DATE'] in active_start_dates) or (notam['POSSIBLE_END_DATE'] in active_end_dates):
-            keep_notams_idx.append(indx)
-
-    notams_step3_df= notams_step3_df.filter(items = keep_notams_idx, axis=0)
-    return notams_step3_df
-
-def filter_active_notams_during_launch_time(notams_step3_df, launch_time_str):
-    launch_time = convert_str_datetime_unix_datetime(launch_time_str)
-    keep_notams_idx = []
-    for indx, notam in notams_step3_df.iterrows():
-        start = convert_str_datetime_unix_datetime(notam['POSSIBLE_START_DATE'])
-        end = convert_str_datetime_unix_datetime(notam['POSSIBLE_END_DATE'])
-        if start <= launch_time and end >= launch_time:
-            keep_notams_idx.append(indx)
-
-    notams_step3_df= notams_step3_df.filter(items = keep_notams_idx, axis=0)
-    return notams_step3_df
-    
-def create_negative_notams_dataset(conn_v, cur_v, launch_rec_id, launch_time):
-
-    #    |2days-------Possible_start_time---|launch_time|------Possible_end_time------2days|
-    sql = """ SELECT NOTAM_REC_ID,  POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, LOCATION_NAME, E_CODE FROM virtual_notams  
-                WHERE (DATETIME(POSSIBLE_START_DATE) <= DATETIME('{launch_date}') AND DATETIME(POSSIBLE_START_DATE) > DATETIME('{launch_date}', '-1 days'))
-                and (DATETIME(POSSIBLE_END_DATE) > DATETIME('{launch_date}') AND DATETIME(POSSIBLE_END_DATE) < DATETIME('{launch_date}', '+1 days'))
-                and (LOCATION_CODE like 'Z%' or LOCATION_CODE like 'K%' or LOCATION_NAME like '%ARTCC%' or AFFECTED_FIR like 'Z%' or AFFECTED_FIR like 'K%')
-                and (E_CODE not null or TEXT not null) 
-                and (E_CODE MATCH "{q}" or TEXT MATCH "{q}") """
-
-    sql1 = sql.format(launch_date=launch_time, q=exclusion_words)
-    neg_notams_df = pd.read_sql_query(sql1, conn_v)
-    print(f'launch_rec_id:{launch_rec_id}, launch_time:{launch_time} - Found neg notams len:{len(neg_notams_df)}')
-    
-    if len(neg_notams_df):
-        neg_notams_df['LAUNCHES_REC_ID'] = launch_rec_id
-        neg_notams_df['LAUNCH_DATE'] = launch_time
-
-    return  neg_notams_df
-
 
 def create_virtual_full_text_search_notam_table(conn, cursor):
     cols = """ NOTAM_REC_ID, E_CODE, TEXT, ISSUE_DATE, POSSIBLE_START_DATE, POSSIBLE_END_DATE, MIN_ALT, MAX_ALT, AFFECTED_FIR, LOCATION_CODE, LOCATION_NAME, NOTAM_TYPE, ACCOUNT_ID  """
@@ -296,6 +205,7 @@ def create_tfr_notams(conn_v, cur_v, launches_df):
             launch_tfr_notam = pd.concat([launch_tfr_notam,pd.Series([launch_location], index=['LAUNCH_LOCATION'])])
             launch_tfr_notam = pd.concat([launch_tfr_notam,pd.Series([launch_state_location], index=['LAUNCH_STATE_LOCATION'])])
             launch_tfr_notam = pd.concat([launch_tfr_notam,pd.Series([launch['LAUNCH_DATE']], index=['LAUNCH_DATE'])])
+            launch_tfr_notam = pd.concat([launch_tfr_notam,pd.Series([launch['SPACEPORT_REC_ID']], index=['SPACEPORT_REC_ID'])])
 
             df = pd.DataFrame([launch_tfr_notam]) 
             tfr_notams.append(df)
@@ -309,102 +219,34 @@ def create_tfr_notams(conn_v, cur_v, launches_df):
     return results_df
 
 # select NOTAMs matching the TFR exactly start or stop time, inclusion and exclusion words
-def create_good_notams(conn_v, cur_v, tfr_notams_df):
+def create_good_notams(conn_v):
     print(f'create_good_notams')
-    results = []
-    for _, tfr in tfr_notams_df.iterrows():
-        good_notams = []
-        launch_rec_id = tfr['LAUNCHES_REC_ID']
-        # if launch_rec_id != 347:  # TODO Remove
-        #     continue
-        start = tfr['POSSIBLE_START_DATE']
-        stop = tfr['POSSIBLE_END_DATE']
-        print(f"start stop:{start, stop} launch_rec_id:{tfr['LAUNCHES_REC_ID']}")
-        
-        # step 2.
-        sql ="""SELECT NOTAM_REC_ID, MIN_ALT as MIN_ALT_K, MAX_ALT as MAX_ALT_K, 
-            POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE, E_CODE_LC, ACCOUNT_ID, NOTAM_TYPE  FROM virtual_notams 
-            WHERE (DATETIME(POSSIBLE_START_DATE) = DATETIME('{start}') 
-            or DATETIME(POSSIBLE_END_DATE) = DATETIME('{stop}') )
-            and NOTAM_TYPE != 'NOTAMC'
-            and E_CODE_LC not null
-            and E_CODE_LC MATCH '{q}' 
-            """.format(start=start, stop=stop, q=search2)
-        notams_step2_df = pd.read_sql_query(sql, conn_v)
-        notams_step2_df.insert(0, "LAUNCHES_REC_ID", notams_step2_df.apply(lambda row : launch_rec_id, axis = 1))
-        good_notams.append(notams_step2_df)
-       
-        # step 3. capture the notam active period from_start to_end
-        (from_start, to_end) = get_active_period(notams_step2_df)
-        print(f'active period:{from_start, to_end}')
-        sql ="""SELECT NOTAM_REC_ID, MIN_ALT as MIN_ALT_K, MAX_ALT as MAX_ALT_K, 
-            POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE,ACCOUNT_ID, E_CODE, E_CODE_LC, NOTAM_TYPE FROM virtual_notams 
-            WHERE DATETIME(POSSIBLE_START_DATE) >= DATETIME('{start}') 
-            and DATETIME(POSSIBLE_END_DATE) <= DATETIME('{stop}')
-            and NOTAM_TYPE != 'NOTAMC'
-            and E_CODE not null
-            and E_CODE not like '%"out of service"%'
-            """.format(start=from_start, stop =to_end)
-
-        notams_step3_df = pd.read_sql_query(sql, conn_v)
-        notams_step3_df = filter_out_exclusion_words(notams_step3_df)
-        notams_step3_df = filter_active_period_notams(notams_step3_df)
-        notams_step3_df = filter_active_notams_during_launch_time(notams_step3_df, tfr['LAUNCH_DATE'])
-        
-        #select the notams published by the same facility ACCOUNT_ID in step2
-        account_id_step2_list = notams_step2_df['ACCOUNT_ID'].to_numpy()
-        account_id_step2_set = set(account_id_step2_list)
-        print(f'account_id_step2_set:{account_id_step2_set}')
-        same_account_notams_indx =[]
-        for indx, notam in notams_step3_df.iterrows():
-            account_id = notam['ACCOUNT_ID']
-            if account_id in account_id_step2_set:
-                same_account_notams_indx.append(indx)
-        notams_step3_df = notams_step3_df.filter(items = same_account_notams_indx, axis=0)
-
-        notams_step3_df.insert(0, "LAUNCHES_REC_ID", notams_step3_df.apply(lambda row : launch_rec_id, axis = 1))
-        good_notams.append(notams_step3_df)
-
-        good_notams_df = pd.concat(good_notams)
-        good_notams_df = good_notams_df.drop_duplicates(subset=['NOTAM_REC_ID'])
-        results.append(good_notams_df)
-        
-    results_df = pd.concat(results)
-    results_df = results_df.drop(columns=['E_CODE_LC'])   
+    sql ="""SELECT NOTAM_REC_ID, MIN_ALT as MIN_ALT_K, MAX_ALT as MAX_ALT_K, 
+        POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE, E_CODE_LC, ACCOUNT_ID, NOTAM_TYPE  FROM virtual_notams 
+        WHERE NOTAM_TYPE != 'NOTAMC'
+        and E_CODE_LC not null
+        and E_CODE_LC MATCH '{q}' 
+        """.format( q=search2)
+    good_notams_df = pd.read_sql_query(sql, conn_v)
+    good_notams_df = good_notams_df.drop_duplicates(subset=['NOTAM_REC_ID'])
+    good_notams_df = good_notams_df.drop(columns=['E_CODE_LC'])   
+    print(f'good_notams len: {len(good_notams_df)}')
+    return good_notams_df
     
-    print(f'good_notams len: {len(results_df)}')
-    return results_df
-    
-def create_bad_notams(conn_v, cur_v, tfr_notams_df):
+def create_bad_notams(conn_v, cur_v):
     print(f'create_bad_notams')
-    results = []
-    for _, tfr in tfr_notams_df.iterrows():
-        launch_rec_id = tfr['LAUNCHES_REC_ID']
-        start = tfr['POSSIBLE_START_DATE']
-        stop = tfr['POSSIBLE_END_DATE']
-        print(f"start stop:{start, stop} launch_rec_id:{tfr['LAUNCHES_REC_ID']}")
-        
-        # step 2.
-        sql ="""SELECT NOTAM_REC_ID, MIN_ALT as MIN_ALT_K, MAX_ALT as MAX_ALT_K, 
-            POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE, E_CODE_LC, ACCOUNT_ID, NOTAM_TYPE  FROM virtual_notams 
-            WHERE (DATETIME(POSSIBLE_START_DATE) = DATETIME('{start}') 
-            or DATETIME(POSSIBLE_END_DATE) = DATETIME('{stop}') )
-            and E_CODE_LC not null
-            and E_CODE_LC MATCH '{q}' 
-            """.format(start=start, stop=stop, q=exclusion_words)
-        bad_notams_df = pd.read_sql_query(sql, conn_v)
-        bad_notams_df['LAUNCHES_REC_ID'] = launch_rec_id
-        new_column  = bad_notams_df.pop('LAUNCHES_REC_ID')
-        bad_notams_df.insert(0, 'LAUNCHES_REC_ID', new_column)
-        bad_notams_df = bad_notams_df.drop_duplicates(subset=['NOTAM_REC_ID'])
-        results.append(bad_notams_df)
-        
-    results_df = pd.concat(results)
-    results_df = results_df.drop(columns=['E_CODE_LC'])    
-    
-    print(f' bad_notams len:{len(results_df)}')
-    print(results_df)
-    return results_df
+    sql ="""SELECT NOTAM_REC_ID, MIN_ALT as MIN_ALT_K, MAX_ALT as MAX_ALT_K, 
+        POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE, E_CODE_LC, ACCOUNT_ID, NOTAM_TYPE  FROM virtual_notams 
+        WHERE NOTAM_TYPE != NOTAMC
+        and E_CODE_LC not null
+        and E_CODE_LC MATCH '{q}' 
+        """.format( q=exclusion_words)
+    bad_notams_df = pd.read_sql_query(sql, conn_v)
+    bad_notams_df = bad_notams_df.drop_duplicates(subset=['NOTAM_REC_ID'])
+    bad_notams_df = bad_notams_df.drop(columns=['E_CODE_LC'])    
+    print(f'bad_notams len: {len(bad_notams_df)}')
+    print(bad_notams_df)
+    return bad_notams_df
     
 
 def main():
@@ -417,18 +259,18 @@ def main():
     launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].fillna(9999)
     launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].astype('int')
 
-    ## Finding TFR
-    # tfr_notams = create_tfr_notams(conn_v, cur_v, launches_df)
-    # tfr_notams.to_csv(f'./data/tfr_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
-    
-    tfr_notams_df = pd.read_csv('./data/tfr_notams.csv', engine="python" )
+    ## create TFR notams
+    tfr_notams = create_tfr_notams(conn_v, cur_v, launches_df)
+    tfr_notams.to_csv(f'./data/tfr_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
 
-    good_notams_df = create_good_notams(conn_v, cur_v, tfr_notams_df)
+    good_notams_df = create_good_notams(conn_v)
     good_notams_df.to_csv(f'./data/possitive_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
-    check_good_notams(conn, tfr_notams_df, good_notams_df )
+    tfr_notams_df = pd.read_csv('./data/tfr_notams.csv', engine="python" )
+    check_good_notams(conn, tfr_notams_df,good_notams_df)
        
-    bad_notams_df = create_bad_notams(conn_v, cur_v, tfr_notams_df)
+    bad_notams_df = create_bad_notams(conn_v, cur_v)
     bad_notams_df.to_csv(f'./data/negative_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
+
     conn.close()
     
 

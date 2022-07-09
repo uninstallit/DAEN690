@@ -1,8 +1,10 @@
 import sqlite3
 import numpy as np
 import pandas as pd
+import time
+from datetime import timedelta
 from sklearn.neighbors import BallTree
-import tensorflow as tf
+#import tensorflow as tf
 
 
 # balltree source
@@ -17,6 +19,7 @@ root = os.path.dirname(parent)
 sys.path.append(root)
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import tensorflow as tf
 
 from functions_.functions import fromBuffer, inputNoneValues
 from functions_.spaceports_dict import get_launch_location, get_spaceports_dict
@@ -24,22 +27,24 @@ from pipelines_.pipelines import features_pipeline
 
 tf.get_logger().setLevel("ERROR")
 
-def pack_results(conn, launch_rec_id, tfr_df, related_notams):   
+def get_selected_notams(conn, related_notams):   
     sql = """ SELECT notam_rec_id, e_code, possible_start_date, possible_end_date, location_code, min_alt as MIN_ALT_K, max_alt as MAX_ALT_K, 
               issue_date, account_id FROM notams where notam_rec_id in {list_rec_id} """.format(list_rec_id=tuple([rec_id for rec_id, s in related_notams]))
     notams_df = pd.read_sql_query(sql, conn)
-    
     notams = []
     for rec_id, _ in  related_notams:
        notams.append(notams_df[notams_df['NOTAM_REC_ID'] ==  rec_id])
-        
     notams_df = pd.concat(notams)
-    print(f"TFR {tfr_df[['NOTAM_REC_ID', 'E_CODE', 'POSSIBLE_START_DATE', 'POSSIBLE_END_DATE']]}")
-    print('Related NOTAMs:')
-    print(notams_df)
-
     return notams_df
 
+def add_launch_col(tfr, df):
+    df['LAUNCHES_REC_ID'] = tfr['LAUNCHES_REC_ID']
+    new_launch_rec_id_col = df.pop('LAUNCHES_REC_ID')
+    df.insert(0, 'LAUNCHES_REC_ID', new_launch_rec_id_col)
+    df['LAUNCH_DATE'] = tfr['LAUNCH_DATE']
+    new_launch_date_col = df.pop('LAUNCH_DATE')
+    df.insert(1, 'LAUNCH_DATE', new_launch_date_col)
+    return df
 
 def set_param_features_pipeline():
     features_pipeline.set_params(**{"idx_7__column_indexes": [2, 3]})
@@ -62,31 +67,67 @@ def set_param_features_pipeline():
     features_pipeline.set_params(**{"idx_8__column_index": 1})
     features_pipeline.set_params(**{"idx_8__skip": False})
 
+def semantic_search(query_ids, tfr_embeddings, query_embeddings, top_pick_param):
+    ss_selected = []
+    for idx, notam_rec_id in enumerate(query_ids):
+        similarity_score = tf.keras.metrics.CosineSimilarity()(tfr_embeddings, query_embeddings[idx])
+        ss_selected.append((notam_rec_id, similarity_score.numpy()))
+    ss_selected = sorted(ss_selected, key=lambda x: x[1], reverse=True)[:top_pick_param]
+    return ss_selected
+
+def siamese_text_search(query_ids, tfr_embeddings, query_embeddings, top_pick_param):
+    base_network = tf.keras.models.load_model(root + "/src/saved_models_/smx_model")
+    cosine_similarity = tf.keras.metrics.CosineSimilarity()
+    anch_prediction = base_network.predict(tfr_embeddings)
     
-def query(conn, spaceports_dict, launch, tfr_df):
-    launch_rec_id, launch_date , launch_spaceport_rec_id= launch['LAUNCHES_REC_ID'], launch['LAUNCH_DATE'], launch['SPACEPORT_REC_ID']
-    launch_location, launch_state_location = get_launch_location(spaceports_dict, launch_spaceport_rec_id)
+    text_s_selected = []
+    for idx, notam_rec_id in enumerate(query_ids):
+        _query_embd = np.expand_dims(query_embeddings[idx], axis=(0, -1))
+        other_prediction = base_network.predict(_query_embd)
+        cosine_similarity.reset_state()
+        cosine_similarity.update_state(anch_prediction, other_prediction)
+        similarity = cosine_similarity.result().numpy()
+        text_s_selected.append((notam_rec_id, similarity))
+
+    text_s_selected = sorted(text_s_selected, key=lambda x: x[1], reverse=True)[:top_pick_param] 
+    print([(rec_id, s) for rec_id, s in text_s_selected])
+    return text_s_selected
+
+def siamese_mix_search(query_ids, tfr_data, tfr_embeddings, query_data, query_embeddings, top_pick_param):
+    base_network = tf.keras.models.load_model(root + "/src/saved_models_/smy_model")
+    cosine_similarity = tf.keras.metrics.CosineSimilarity()
+    anch_prediction = base_network.predict([tfr_data, tfr_embeddings])
     
-    tfr_rec_id = tfr_df.iloc[0]['NOTAM_REC_ID'] # Only TFR per launch event
+    ms_selected = []
+    for idx, notam_rec_id in enumerate(query_ids):
+        _query_data = np.expand_dims(query_data[idx], 0)
+        _query_embd = np.expand_dims(query_embeddings[idx], axis=(0, -1))
+        other_prediction = base_network.predict([_query_data, _query_embd])
+        cosine_similarity.reset_state()
+        cosine_similarity.update_state(anch_prediction, other_prediction)
+        similarity = cosine_similarity.result().numpy()
+        ms_selected.append((notam_rec_id, similarity))
 
-    sql = """ SELECT * FROM notam_centroids """
-    centroid_df = pd.read_sql_query(sql, conn)
+    ms_selected = sorted(ms_selected, key=lambda x: x[1], reverse=True)[:top_pick_param] 
+    print([(rec_id, s) for rec_id, s in ms_selected])
+    return ms_selected
 
-    print('TFR Notam:')
-    print(tfr_df[['NOTAM_REC_ID', 'E_CODE', 'POSSIBLE_START_DATE', 'POSSIBLE_END_DATE']])
-
-    start_date = tfr_df["POSSIBLE_START_DATE"].tolist()[0]  
-    end_date = tfr_df["POSSIBLE_END_DATE"].tolist()[0]  
-
-    sql = """ SELECT * FROM notams 
+SQL = """ SELECT * FROM notams 
         LEFT JOIN notam_centroids 
         USING(NOTAM_REC_ID) 
         WHERE DATETIME(notams.POSSIBLE_START_DATE) >= DATETIME(\"{start}\", '-1 day') 
         AND DATETIME(notams.POSSIBLE_START_DATE) <= DATETIME(\"{start}\", '+1 day') 
         AND DATETIME(notams.POSSIBLE_END_DATE) >= DATETIME(\"{end}\", '-1 day') 
-        AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+1 day'); """.format(
-        start=start_date, end=end_date
-    )
+        AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+1 day'); """
+
+def query(conn, centroid_df, tfr_df, top_pick_param, radius_param, debug_flag):
+    print(f'query.....')
+    tfr_rec_id = tfr_df.iloc[0]['NOTAM_REC_ID'] # Only one TFR per launch event
+    start_date = tfr_df["POSSIBLE_START_DATE"].tolist()[0]  
+    end_date = tfr_df["POSSIBLE_END_DATE"].tolist()[0]      
+
+    # query notams in the range of  +1 day and -1 day of the TFR date
+    sql = SQL.format(start=start_date, end=end_date)
     query_df = pd.read_sql_query(sql, conn)
 
     query_df = query_df[query_df["LATITUDE"].notna()]
@@ -104,20 +145,17 @@ def query(conn, spaceports_dict, launch, tfr_df):
 
     # balltree filter
     tree = BallTree(query_x, metric="haversine")
-    Radius = 50  # Tune param
-    
-    print(f'Balltree filter by radius:{Radius}nm')
-    ind = tree.query_radius(tfr_x, r=Radius)
-    print(f'ind:{ind}')
-    
-    # # print(ind)  # indices of 3 closest neighbors
-    # # print(dist)  # distances to 3 closest neighbors
-    print("BallTree Notams count within range: ", len(ind[0]))
-    query_df = query_df.iloc[ind[0]]
-   
-    # # fill out none values for selected features
-    query_df = inputNoneValues(query_df)
+    ind = tree.query_radius(tfr_x, r=radius_param)
+    if debug_flag:
+        print(f'Balltree filter by radius:{radius_param}nm')
+        print(f'ind:{ind}')
+        # # print(ind)  # indices of 3 closest neighbors
+        # # print(dist)  # distances to 3 closest neighbors
+        print("BallTree Notams count within range: ", len(ind[0]))
 
+    # NLP
+    query_df = query_df.iloc[ind[0]]
+    query_df = inputNoneValues(query_df) # # fill out none values for selected features
     set_param_features_pipeline()
     
     tfr_data = features_pipeline.fit_transform(tfr_df)
@@ -127,61 +165,60 @@ def query(conn, spaceports_dict, launch, tfr_df):
     query_data = features_pipeline.fit_transform(query_df)
     query_ids = query_data[:, 0] # get notam_rec_id
     query_embeddings = fromBuffer(query_data[:, 8])
-    query_data = query_data[:, 2:-1].astype("float32") 
+    query_data = query_data[:, 2:-1].astype("float32") # TODO as Edvin feature ACCOUNT_ID??
 
-    top_picks = 10
-    # semantic search filter - select the top 100
-    ss_selected = []
-    for idx, notam_rec_id in enumerate(query_ids):
-        similarity_score = tf.keras.metrics.CosineSimilarity()(tfr_embeddings, query_embeddings[idx])
-        ss_selected.append((notam_rec_id, similarity_score.numpy()))
-    ss_selected = sorted(ss_selected, key=lambda x: x[1], reverse=True)[:top_picks]
-  
-    # text model
-    # base_network = tf.keras.models.load_model(root + "/src/saved_models_/smx_model")
-
-    # mixed model  
-    base_network = tf.keras.models.load_model(root + "/src/saved_models_/smy_model")
-    cosine_similarity = tf.keras.metrics.CosineSimilarity()
-    # anch_prediction = base_network.predict(tfr_embeddings)
-    anch_prediction = base_network.predict([tfr_data, tfr_embeddings])
+    ss_selected = semantic_search(query_ids, tfr_embeddings, query_embeddings, top_pick_param)
+    ts_selected = siamese_text_search(query_ids,tfr_embeddings, query_embeddings, top_pick_param)
+    ms_selected = siamese_mix_search (query_ids, tfr_data, tfr_embeddings, query_data, query_embeddings, top_pick_param)
    
-    ms_selected = []
-    for idx, notam_rec_id in enumerate(query_ids):
-        _query_data = np.expand_dims(query_data[idx], 0)
-        _query_embd = np.expand_dims(query_embeddings[idx], axis=(0, -1))
-        # other_prediction = base_network.predict(_query_embd)
-        other_prediction = base_network.predict([_query_data, _query_embd])
-        cosine_similarity.reset_state()
-        cosine_similarity.update_state(anch_prediction, other_prediction)
-        similarity = cosine_similarity.result().numpy()
-        ms_selected.append((notam_rec_id, similarity))
+    if debug_flag:
+        print('TFR Notam:')
+        print(tfr_df[['NOTAM_REC_ID', 'E_CODE', 'POSSIBLE_START_DATE', 'POSSIBLE_END_DATE']])
 
-    ms_selected = sorted(ms_selected, key=lambda x: x[1], reverse=True)[:top_picks] 
-    print([(rec_id, s) for rec_id, s in ms_selected])
+        print("\nSemantic Search Model Score")
+        for notam_rec_id, similarity in ss_selected:
+            print(f"ss Notam id: {notam_rec_id} - cos score: {similarity}")
+        print([i for i, s in ss_selected])
+
+        print("\nText Model Score")
+        for notam_rec_id, similarity in ts_selected:
+            print(f"ts Notam id: {notam_rec_id} - cos score: {similarity}")
+        print([i for i, s in ts_selected])
+
+        print("\nMix Model Score")
+        for notam_rec_id, similarity in ms_selected:
+            print(f"ms Notam id: {notam_rec_id} - cos score: {similarity}")
+        print([i for i, s in ms_selected])
+    
+    ss_results_df = get_selected_notams(conn, ss_selected)
+    ts_results_df = get_selected_notams(conn, ts_selected)
+    ms_results_df = get_selected_notams(conn, ms_selected)
+    return (ss_results_df, ts_results_df, ms_results_df)
+    
+def nlp_match(conn, centroid_df, input_tfrs_df, notams_df, launch_ids_param, top_pick_param, radius_param,debug_flag):
+    cols=['LAUNCHES_REC_ID','NOTAM_REC_ID','MIN_ALT_K','MAX_ALT_K', 'LAUNCH_DATE','ISSUE_DATE', 
+            'POSSIBLE_START_DATE','POSSIBLE_END_DATE', 'E_CODE','LOCATION_CODE','ACCOUNT_ID']
+
+    # use launch_ids_param list if any
+    input_tfrs_df  = input_tfrs_df.loc[input_tfrs_df['LAUNCHES_REC_ID'].isin(launch_ids_param)] if len(launch_ids_param) else input_tfrs_df   
    
-    print("\nSemantic Search")
-    for notam_rec_id, similarity in ss_selected:
-        print(f"ss Notam id: {notam_rec_id} - cos score: {similarity}")
-
-    print("\nModel Score")
-    for notam_rec_id, similarity in ms_selected:
-        print(f"ms Notam id: {notam_rec_id} - cos score: {similarity}")
-
-    print("\nSemantic Search")
-    print([i for i, s in ss_selected])
-    print("\nModel Score")
-    print([i for i, s in ms_selected])
-
+    results = {} # { launch_rec_id: [tfr, ss, ts, ms]}
+    for idx, tfr_info in input_tfrs_df.iterrows():
+        launch_rec_id = tfr_info['LAUNCHES_REC_ID']
+        tfr_notam_rec_id = tfr_info['NOTAM_REC_ID']
+        tfr_notam_df = notams_df[notams_df["NOTAM_REC_ID"] == tfr_notam_rec_id]       
+        result = query(conn, centroid_df, tfr_notam_df, top_pick_param, radius_param,debug_flag)
+        (ss_matches_df, ts_matches_df, ms_matches_df) = result
+        # adding column, reindex results
+        ss_matches_df = add_launch_col(tfr_info, ss_matches_df)
+        ts_matches_df = add_launch_col(tfr_info, ts_matches_df)
+        ms_matches_df = add_launch_col(tfr_info, ms_matches_df)
+        ss_matches_df = ss_matches_df.reindex(cols, axis=1)
+        ts_matches_df = ts_matches_df.reindex(cols, axis=1)
+        ms_matches_df = ms_matches_df.reindex(cols, axis=1)
+        results[launch_rec_id] = (tfr_info, ss_matches_df, ts_matches_df, ms_matches_df)
     
-    print(f'\n---Semantic Search Model Results launch_id: {launch_rec_id} date: {launch_date} {launch_location} {launch_state_location}')
-    ss_results  = pack_results(conn, launch_rec_id, tfr_df, ss_selected)
-
-    print(f'\n---Siamese Model Results launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
-    ms_results = pack_results(conn, launch_rec_id, tfr_df, ms_selected)
-    
-    return (launch_rec_id, ss_results, ms_results)
-    
+    return results
     
 def main():
     
@@ -189,51 +226,70 @@ def main():
 
     sql = """ SELECT * FROM notams """
     notams_df = pd.read_sql_query(sql, conn)
-
-    sql = """ SELECT * from launches """
-    launches_df = pd.read_sql_query(sql, conn)
-    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].fillna(9999)
-    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].astype('int')
-    
+    sql = """ SELECT * FROM notam_centroids """
+    centroid_df = pd.read_sql_query(sql, conn)
     spaceports_dict = get_spaceports_dict(conn)
+    tfr_notams_df = pd.read_csv(root + "/data/tfr_notams.0709.csv" , engine="python" )
+    print(f'Total number of launches has TFR len:{len(tfr_notams_df)}')
 
-    tfr_notams_df = pd.read_csv(root + "/data/tfr_notams.0704.csv" , engine="python" )
+    # list launch_rec_id you wish to run launch. Empty array will run all 104 launches having TFR
+    launch_ids_param = [391,284]
+    top_pick_param = 10
+    radius_param = 50
+    debug_flag = False
 
+    start = time.time()
+    results = nlp_match(conn, centroid_df, tfr_notams_df, notams_df, launch_ids_param, top_pick_param, radius_param, debug_flag)
+    end = time.time()   
+    print(f'Elapse time: {str(timedelta(seconds=end-start))}')  
+
+    ##### print and write results to csv, db
     ss_results = []
-    ms_results = []
-    for idx, launch in launches_df.iterrows():
-        launch_rec_id = launch['LAUNCHES_REC_ID']
-        matched_tfr_df = tfr_notams_df[tfr_notams_df['LAUNCHES_REC_ID'] == launch_rec_id]
-        if len(matched_tfr_df):
-            tfr_rec_id = matched_tfr_df.iloc[0]['NOTAM_REC_ID']
-            tfr_df = notams_df[notams_df["NOTAM_REC_ID"] == tfr_rec_id]
-            if launch_rec_id == 284: ##### TODO remove test
-               (launch_rec_id, ss_matches, ms_matches) = query(conn, spaceports_dict, launch, tfr_df)
-               ss_matches.insert(0, "LAUNCHES_REC_ID", ss_matches.apply(lambda row : launch_rec_id, axis = 1))
-               ss_matches.insert(1, "LAUNCH_DATE", ss_matches.apply(lambda row : launch['LAUNCH_DATE'], axis = 1))
-               ss_results.append(ss_matches)
-               ms_matches.insert(0, "LAUNCHES_REC_ID", ms_matches.apply(lambda row : launch_rec_id, axis = 1))
-               ms_matches.insert(1, "LAUNCH_DATE", ms_matches.apply(lambda row : launch['LAUNCH_DATE'], axis = 1))
-               ms_results.append(ms_matches)
+    tx_results = []
+    ms_results =[]
+    for launch_rec_id, result in results.items():
+        (tfr, ss_matches_df, ts_matches_df, ms_matches_df) = result
+        ss_results.append(ss_matches_df)
+        tx_results.append(ts_matches_df)
+        ms_results.append(ms_matches_df)
+        launch_rec_id, launch_date , spaceport_rec_id= tfr['LAUNCHES_REC_ID'], tfr['LAUNCH_DATE'], tfr['SPACEPORT_REC_ID']
+        launch_location, launch_state_location = get_launch_location(spaceports_dict, spaceport_rec_id)
     
+        print(f'\n---Semantic Search Model')
+        print(f'Launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
+        print(f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE'] }")
+        print(f'Related NOTAMs:')
+        print(ss_matches_df)
+
+        print(f'\n---Siamese Text Model')
+        print(f'Launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
+        print(f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE']}")
+        print(f'Related NOTAMs:')
+        print(ts_matches_df)
+
+        print(f'\n---Siamese Mix Model')
+        print(f'Launch_id: {launch_rec_id} date: {launch_date} {launch_location}')
+        print(f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE'] }")
+        print(f'Related NOTAMs:')
+        print(ms_matches_df)
+
+
+    # write out the results
     ss_results_df = pd.concat(ss_results)
+    ts_results_df = pd.concat(tx_results)
     ms_results_df = pd.concat(ms_results)
+
+    ss_results_df.to_csv(f'./data/team_bravo_semantic_matches.csv', index=False)
+    ts_results_df.to_csv(f'./data/team_bravo_siamese_txt_matches.csv', index=False)
+    ms_results_df.to_csv(f'./data/team_bravo_siamese_mix_matches.csv', index=False)
+
+    ss_results_df.to_sql('team_bravo_semantic_matches', conn, if_exists='replace', index = False)
+    ts_results_df.to_sql('team_bravo_siamese_txt_matches', conn, if_exists='replace', index = False)
+    ms_results_df.to_sql('team_bravo_siamese_mix_matches', conn, if_exists='replace', index = False)
 
     # TODO take care (sanjiv's step3) - need to justify the low score notam list if they have the start/end date and same account_id with others 
     # then they are related notams
 
-    cols=['LAUNCHES_REC_ID','NOTAM_REC_ID','MIN_ALT_K','MAX_ALT_K',
-          'LAUNCH_DATE','ISSUE_DATE', 'POSSIBLE_START_DATE','POSSIBLE_END_DATE',
-          'E_CODE','LOCATION_CODE','ACCOUNT_ID']
-    ss_results_df = ss_results_df.reindex(cols, axis=1)
-    ms_results_df = ms_results_df.reindex(cols, axis=1)
- 
-    ss_results_df.to_csv(f'./data/team_bravo_semantic_matches.csv', index=False)
-    ms_results_df.to_csv(f'./data/team_bravo_siamese_matches.csv', index=False)
-
-    ss_results_df.to_sql('team_bravo_semantic_matches', conn, if_exists='replace', index = False)
-    ms_results_df.to_sql('team_bravo_siamese_matches', conn, if_exists='replace', index = False)
-    
     conn.close()
 
 

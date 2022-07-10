@@ -10,7 +10,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 root = os.path.dirname(parent)
-sys.path.append(parent)
+sys.path.append(root)
 
 params_path = root + "/sample_data/params.txt"
 

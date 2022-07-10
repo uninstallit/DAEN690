@@ -26,7 +26,7 @@ class SiameseModel(tf.keras.Model):
        L(A, P, N) = max(‖f(A) - f(P)‖² - ‖f(A) - f(N)‖² + margin, 0)
     """
 
-    def __init__(self, siamese_network, margin=1.0):
+    def __init__(self, siamese_network, margin=0.25):
         super(SiameseModel, self).__init__()
         self.siamese_network = siamese_network
         self.margin = margin
@@ -82,10 +82,8 @@ class DistanceLayer(tf.keras.layers.Layer):
 def get_base_network(mixed_input_shape, embedding_input_shape):
     # mixed data
     mixed_inputs = tf.keras.Input(shape=mixed_input_shape, name="mixed")
-    x = tf.keras.layers.Dense(128, activation="relu")(mixed_inputs)
-    x = tf.keras.layers.Dropout(0.2)(x)
-    x = tf.keras.layers.Dense(256, activation="relu")(x)
-    x = tf.keras.layers.Dropout(0.2)(x)
+    x = tf.keras.layers.Dense(64, activation="relu")(mixed_inputs)
+    x = tf.keras.layers.Dropout(0.5)(x)
     mixed_outputs = tf.keras.layers.Dense(384, activation="sigmoid")(x)
 
     # embeddings
@@ -100,7 +98,6 @@ def get_base_network(mixed_input_shape, embedding_input_shape):
     concat = tf.keras.layers.concatenate([mixed_outputs, embedding_outputs])
     x = tf.keras.layers.Dense(384, activation="relu")(concat)
     x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(384, activation="relu")(x)
     outputs = tf.keras.layers.Dense(384, activation="linear")(x)
     # outputs = tf.keras.layers.Lambda(lambda v: tf.math.l2_normalize(v, axis=1))(x)
 
@@ -166,9 +163,9 @@ def main():
     negative_embeddings = np.expand_dims(fromBuffer(negative_data[:, 8]), -1)
 
     # drop id, text, and byte array
-    anchor_data = anchor_data[:, 2:-1].astype("float32")
-    positive_data = positive_data[:, 2:-1].astype("float32")
-    negative_data = negative_data[:, 2:-1].astype("float32")
+    anchor_data = anchor_data[:, 4:-1].astype("float32")
+    positive_data = positive_data[:, 4:-1].astype("float32")
+    negative_data = negative_data[:, 4:-1].astype("float32")
 
     anchor_data_dataset = tf.data.Dataset.from_tensor_slices(anchor_data)
     positive_data_dataset = tf.data.Dataset.from_tensor_slices(positive_data)
@@ -191,8 +188,8 @@ def main():
     dataset = dataset.shuffle(buffer_size=1024)
     assert len(anchor_data) == len(anchor_embeddings)
 
-    train_dataset = dataset.take(round(len(anchor_data) * 0.50))
-    val_dataset = dataset.skip(round(len(anchor_data) * 0.50))
+    train_dataset = dataset.take(round(len(anchor_data) * 0.75))
+    val_dataset = dataset.skip(round(len(anchor_data) * 0.75))
 
     train_dataset = train_dataset.batch(32, drop_remainder=False)
     train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
@@ -200,7 +197,7 @@ def main():
     val_dataset = val_dataset.batch(32, drop_remainder=False)
     val_dataset = val_dataset.prefetch(tf.data.AUTOTUNE)
 
-    mixed_data_input_shape = (6,)
+    mixed_data_input_shape = (4,)
     embeddings_input_shape = (384, 1)
 
     base_network = get_base_network(mixed_data_input_shape, embeddings_input_shape)
@@ -209,10 +206,10 @@ def main():
     )
 
     siamese_model = SiameseModel(siamese_network)
-    siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
-    history = siamese_model.fit(train_dataset, epochs=10, validation_data=val_dataset)
+    siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.00001))
+    history = siamese_model.fit(train_dataset, epochs=100, validation_data=val_dataset)
 
-    base_network.save(root + "/src/saved_models_/smy_model")
+    base_network.save(root + "/src/saved_models_/smxy_model")
 
     # *** inference ***
 

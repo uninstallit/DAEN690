@@ -24,9 +24,11 @@ exclusion_words = """obst* OR fire OR unmanned OR crane OR uas OR aerial OR dril
                             dropzone OR runway OR wind OR aerobatic OR airfield OR model  OR 
                             para*  OR parachute OR jumpers OR paradrops OR 
                             glide OR tcas OR accident OR investigation OR training OR 
-                            approach OR explosion OR explosive OR demolitions"""
+                            approach OR explosion OR explosive OR demolitions 
+                            OR baloon* OR balloon* OR hurricane* OR "transfered from ship" OR "troop transport" 
+                            OR construction OR "radio unavailable" OR "handled by falcon radio" OR rattlesnake """
 
-exclusion_list  =[ 'obst','obstruct','obstn', 'obstruction',
+exclusion_list  = ['obst','obstruct','obstn', 'obstruction',
             'fire', 'unmanned', 'crane', 'uas', 'aerial', 'drill', 'installed',
             'terminal','parking', 'rwy', 'taxi', 'twy', 'hangar', 'chemical',
             'pavement', 'firing', "out of service", 'volcan', 'turbine', 'flare', 'wx',
@@ -35,7 +37,7 @@ exclusion_list  =[ 'obst','obstruct','obstn', 'obstruction',
             'helipad','bird','laser','heliport', 'ordnance','decommisioned','decomissioned'
             'dropzone','runway','wind','aerobatic', 'airfiel', 'model','para', 'parachute' 
             'jumpers','paradrops','glide','tcas','accident','investigation','training' 
-            'approach', 'explosion', 'explosive', 'demolition','demolitions']
+            'approach', 'explosion', 'explosive', 'demolition','demolitions', 'baloon', 'balloon', 'hurricane']
 
 # use in finding TFR notams
 exclusions = """ NOT (obst* OR fire OR unmanned OR crane OR uas OR aerial OR drill OR installed OR 
@@ -44,10 +46,11 @@ exclusions = """ NOT (obst* OR fire OR unmanned OR crane OR uas OR aerial OR dri
                             aerodrome OR apron OR tower OR hospital OR covid OR medical OR copter OR 
                             disabled OR passenger OR passanger OR arctic OR artic OR defense OR defence OR 
                             helipad OR bird OR laser OR heliport OR ordnance OR decommisioned OR decomissioned OR 
-                            dropzone OR runway OR wind OR aerobatic OR airfield OR model  OR 
-                            para*  OR parachute OR jumpers OR paradrops OR 
-                            glide OR tcas OR accident OR investigation OR training OR 
-                            approach OR explosion OR explosive OR demolitions) """
+                            dropzone OR runway OR wind OR aerobatic OR airfield OR model OR 
+                            para* OR parachute OR jumpers OR paradrops OR glide OR tcas OR accident OR investigation OR 
+                            training OR approach OR explosion OR explosive OR demolitions 
+                            OR baloon* OR balloon* OR hurricane OR "transfered from ship" OR "troop transport" 
+                            OR construction OR "radio unavailable" OR "handled by falcon radio" OR rattlesnake) """
     
 # add vehicle name to the initial inclusion_words for this dataset notams
 inclusions = """launch OR space OR "91*143" OR "attention airline dispatchers" OR "hazard area" 
@@ -76,7 +79,6 @@ search2 = """(launch {exclusions})
             OR ("temporary flight restriction*" {exclusions})
             OR ("temporary flt rest*" {exclusions})
             OR ("flight rest*" {exclusions})
-            OR (tfr {exclusions} ) 
             OR (rocket {exclusions}) OR (missile {exclusions}) OR (canaveral {exclusions}) OR (kennedy {exclusions}) OR (nasa {exclusions} )
             OR (antares {exclusions}) OR (orion {exclusions}) OR (atlas {exclusions}) OR (zenit {exclusions}) OR (falcon {exclusions}) 
             OR (dragon {exclusions}) OR (spaceship {exclusions}) OR (minuteman {exclusions}) OR (trident {exclusions}) 
@@ -85,15 +87,15 @@ search2 = """(launch {exclusions})
 def check_good_notams(conn, tfr_notams_df,good_notams_df ):
     # check how many tfr notams in the good_notams_df
     tfr_notams = tfr_notams_df['NOTAM_REC_ID'].to_numpy()
-    trf_in_notams = []
-    tfr_not_in = []
+    saw_tfr_in_good_notams = []
+    tfr_not_in_good_notams = []
     for trf in tfr_notams:
         if (good_notams_df['NOTAM_REC_ID'] == trf).any():
-            trf_in_notams.append(trf)
+            saw_tfr_in_good_notams.append(trf)
         else:
-            tfr_not_in.append(trf)
-    print(f'trf in  notams len:{len(trf_in_notams)} // {len(tfr_notams_df)}')
-    print(f'trf not in len:{len(tfr_not_in)} // {len(tfr_notams_df)} ')
+            tfr_not_in_good_notams.append(trf)
+    print(f'saw tfr in good_notams list: {len(saw_tfr_in_good_notams)} // {len(tfr_notams_df)}')
+    print(f'trf not in good_notams list:{len(tfr_not_in_good_notams)} // {len(tfr_notams_df)} ')
     
    # compare with human_matches
     sql = """ select * from human_matches  """
@@ -170,6 +172,7 @@ def find_initial_tfr(conn_v, cur_v, launch):
             and (DATETIME(POSSIBLE_END_DATE) >= DATETIME('{launch_date}') AND DATETIME(POSSIBLE_END_DATE) < DATETIME('{launch_date}', '+30 days')) 
             and (LOCATION_CODE in {spaceport_location} or LOCATION_NAME in {spaceport_location} or AFFECTED_FIR in {spaceport_location})
             and NOTAM_TYPE != 'NOTAMC'
+            and MAX_ALT > 15.0
             and E_CODE_LC not null
             and E_CODE_LC MATCH '{q}' 
             """.format(launch_date=launch_date, spaceport_location = launch_pad_artcc, q=search1)
@@ -224,12 +227,16 @@ def create_good_notams(conn_v):
     sql ="""SELECT NOTAM_REC_ID, MIN_ALT as MIN_ALT_K, MAX_ALT as MAX_ALT_K, 
         POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE, E_CODE_LC, ACCOUNT_ID, NOTAM_TYPE  FROM virtual_notams 
         WHERE NOTAM_TYPE != 'NOTAMC'
+        and MAX_ALT > 15.0
         and E_CODE_LC not null
         and E_CODE_LC MATCH '{q}' 
         """.format( q=search2)
     good_notams_df = pd.read_sql_query(sql, conn_v)
     good_notams_df = good_notams_df.drop_duplicates(subset=['NOTAM_REC_ID'])
+    good_notams_df = good_notams_df.drop_duplicates(subset=['E_CODE'])
     good_notams_df = good_notams_df.drop(columns=['E_CODE_LC'])   
+
+
     print(f'good_notams len: {len(good_notams_df)}')
     return good_notams_df
     
@@ -237,12 +244,13 @@ def create_bad_notams(conn_v, cur_v):
     print(f'create_bad_notams')
     sql ="""SELECT NOTAM_REC_ID, MIN_ALT as MIN_ALT_K, MAX_ALT as MAX_ALT_K, 
         POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE, E_CODE_LC, ACCOUNT_ID, NOTAM_TYPE  FROM virtual_notams 
-        WHERE NOTAM_TYPE != NOTAMC
+        WHERE NOTAM_TYPE != 'NOTAMC'
         and E_CODE_LC not null
         and E_CODE_LC MATCH '{q}' 
         """.format( q=exclusion_words)
     bad_notams_df = pd.read_sql_query(sql, conn_v)
     bad_notams_df = bad_notams_df.drop_duplicates(subset=['NOTAM_REC_ID'])
+    bad_notams_df = bad_notams_df.drop_duplicates(subset=['E_CODE'])
     bad_notams_df = bad_notams_df.drop(columns=['E_CODE_LC'])    
     print(f'bad_notams len: {len(bad_notams_df)}')
     print(bad_notams_df)
@@ -260,16 +268,16 @@ def main():
     launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].astype('int')
 
     ## create TFR notams
-    tfr_notams = create_tfr_notams(conn_v, cur_v, launches_df)
-    tfr_notams.to_csv(f'./data/tfr_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
+    # tfr_notams = create_tfr_notams(conn_v, cur_v, launches_df)
+    # tfr_notams.to_csv(f'./data/tfr_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
 
     good_notams_df = create_good_notams(conn_v)
-    good_notams_df.to_csv(f'./data/possitive_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
+    good_notams_df.to_csv(f'./data/possitive_unique_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
     tfr_notams_df = pd.read_csv('./data/tfr_notams.csv', engine="python" )
     check_good_notams(conn, tfr_notams_df,good_notams_df)
        
-    bad_notams_df = create_bad_notams(conn_v, cur_v)
-    bad_notams_df.to_csv(f'./data/negative_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
+    # bad_notams_df = create_bad_notams(conn_v, cur_v)
+    # bad_notams_df.to_csv(f'./data/negative_unique_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
 
     conn.close()
     

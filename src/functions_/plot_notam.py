@@ -55,9 +55,9 @@ def plot_us_classification(cursor):
     # fig, [[ax1, ax2],[ax3,ax4]] = plt.subplots(nrows=2, ncols=2, figsize=(10, 5))
     fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(10, 5))
     sns.countplot(data= df, x='classification', ax=ax1)
-    ax1.set_title('NOTAM by Classification')
+    ax1.set_title('Count US NOTAM by Classification')
     ax1.set_ylabel('Count')
-    ax1.set_xlabel('NOTAM Classification')
+    ax1.set_xlabel('Classification')
     fig.tight_layout()
     plt.show()
 
@@ -72,10 +72,10 @@ def plot_us_notam_type(cursor):
     # plotting four plots in one tile 2 x 2
     # fig, [[ax1, ax2],[ax3,ax4]] = plt.subplots(nrows=2, ncols=2, figsize=(10, 5))
     fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(10, 5))
-    sns.countplot(data= df, x='classification', ax=ax1)
-    ax1.set_title('NOTAM by Type')
-    ax1.set_ylabel('Count')
-    ax1.set_xlabel('NOTAM Type')
+    sns.countplot(data= df, x='notam_type', ax=ax1)
+    ax1.set_title('Percentage of US NOTAM by Type')
+    ax1.set_ylabel('Percent')
+    ax1.set_xlabel('Type')
     fig.tight_layout()
     plt.show()
 
@@ -143,8 +143,8 @@ def main():
     #plot_notam_data(cursor)
     #plot_notam_missing_polygons(cursor)
     # plot_classification_and_type(cursor)
-    #plot_us_classification(cursor)
-    plot_us_notam_type(cursor)
+    plot_us_classification(cursor)
+    #plot_us_notam_type(cursor)
     #plot_launch_data(conn,  cursor)
     
     conn.close()

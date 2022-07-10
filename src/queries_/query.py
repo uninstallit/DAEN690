@@ -27,14 +27,26 @@ from pipelines_.pipelines import features_pipeline
 
 tf.get_logger().setLevel("ERROR")
 
-def get_selected_notams(conn, related_notams):   
-    sql = """ SELECT notam_rec_id, e_code, possible_start_date, possible_end_date, location_code, min_alt as MIN_ALT_K, max_alt as MAX_ALT_K, 
-              issue_date, account_id FROM notams where notam_rec_id in {list_rec_id} """.format(list_rec_id=tuple([rec_id for rec_id, s in related_notams]))
+def get_selected_notams(conn, tfr_rec_id, selected_notams):   
+    sql = """ SELECT notam_rec_id, e_code, possible_start_date, possible_end_date, location_code, 
+              min_alt as MIN_ALT_K, max_alt as MAX_ALT_K, issue_date, account_id FROM notams 
+              where notam_rec_id in {list_rec_id} """
+    sql = sql.format(list_rec_id=tuple([rec_id for rec_id, s in selected_notams]))
     notams_df = pd.read_sql_query(sql, conn)
-    notams = []
-    for rec_id, _ in  related_notams:
-       notams.append(notams_df[notams_df['NOTAM_REC_ID'] ==  rec_id])
-    notams_df = pd.concat(notams)
+
+    # order scores to match with the order of notams_df NOTAM_REC_ID
+    scores= []
+    for i , row in notams_df.iterrows():
+        found = [item for item in selected_notams if item[0] == row['NOTAM_REC_ID']]
+        if found:
+            score = found[0][1]
+            scores.append(score)
+        else:
+            scores.append(0)  
+    notams_df.insert(1, 'SCORE',pd.Series(scores))
+
+    # denote a row is a TFR 
+    notams_df['TFR_FLAG'] = notams_df.apply(lambda row: 1 if row['NOTAM_REC_ID'] == tfr_rec_id else 0, axis=1)
     return notams_df
 
 def add_launch_col(tfr, df):
@@ -153,7 +165,7 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_param, debug_flag):
         # # print(dist)  # distances to 3 closest neighbors
         print("BallTree Notams count within range: ", len(ind[0]))
 
-    # NLP
+    # Model search
     query_df = query_df.iloc[ind[0]]
     query_df = inputNoneValues(query_df) # # fill out none values for selected features
     set_param_features_pipeline()
@@ -190,14 +202,14 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_param, debug_flag):
             print(f"ms Notam id: {notam_rec_id} - cos score: {similarity}")
         print([i for i, s in ms_selected])
     
-    ss_results_df = get_selected_notams(conn, ss_selected)
-    ts_results_df = get_selected_notams(conn, ts_selected)
-    ms_results_df = get_selected_notams(conn, ms_selected)
+    ss_results_df = get_selected_notams(conn, tfr_rec_id, ss_selected)
+    ts_results_df = get_selected_notams(conn, tfr_rec_id, ts_selected)
+    ms_results_df = get_selected_notams(conn, tfr_rec_id, ms_selected)
     return (ss_results_df, ts_results_df, ms_results_df)
     
 def nlp_match(conn, centroid_df, input_tfrs_df, notams_df, launch_ids_param, top_pick_param, radius_param,debug_flag):
-    cols=['LAUNCHES_REC_ID','NOTAM_REC_ID','MIN_ALT_K','MAX_ALT_K', 'LAUNCH_DATE','ISSUE_DATE', 
-            'POSSIBLE_START_DATE','POSSIBLE_END_DATE', 'E_CODE','LOCATION_CODE','ACCOUNT_ID']
+    cols=['LAUNCHES_REC_ID','NOTAM_REC_ID','SCORE', 'MIN_ALT_K','MAX_ALT_K', 'LAUNCH_DATE','ISSUE_DATE', 
+            'POSSIBLE_START_DATE','POSSIBLE_END_DATE', 'E_CODE','LOCATION_CODE','ACCOUNT_ID','TFR_FLAG']
 
     # use launch_ids_param list if any
     input_tfrs_df  = input_tfrs_df.loc[input_tfrs_df['LAUNCHES_REC_ID'].isin(launch_ids_param)] if len(launch_ids_param) else input_tfrs_df   
@@ -232,11 +244,11 @@ def main():
     input_tfrs_df = pd.read_csv(root + "/data/tfr_notams.0709.csv" , engine="python" )
     print(f'Total number of launches has TFR len:{len(input_tfrs_df)}')
 
-    # list launch_rec_id you wish to run launch. Empty array will run all 104 launches having TFR
-    launch_ids_param = [391,284]
+    # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
+    launch_ids_param = [391, 360]
     top_pick_param = 10
     radius_param = 50
-    debug_flag = False
+    debug_flag = False # turn off console print debug
 
     start = time.time()
     results = nlp_match(conn, centroid_df, input_tfrs_df, notams_df, launch_ids_param, top_pick_param, radius_param, debug_flag)

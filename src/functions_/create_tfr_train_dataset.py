@@ -246,7 +246,7 @@ def create_bad_notams(conn_v, cur_v):
     return bad_notams_df
     
 
-def main():
+def create_tfr_train_dataset():
     conn = sqlite3.Connection("./data/svo_db_20201027.db")
     cursor = conn.cursor()
     (conn_v, cur_v) = create_virtual_full_text_search_notam_table(conn, cursor)
@@ -257,19 +257,22 @@ def main():
     launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].astype('int')
 
     ## create TFR notams
-    # tfr_notams = create_tfr_notams(conn_v, cur_v, launches_df)
-    # tfr_notams.to_csv(f'./data/tfr_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
+    tfr_notams = create_tfr_notams(conn_v, cur_v, launches_df)
+    tfr_notams.to_csv(f'./data/tfr_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
 
     good_notams_df = create_good_notams(conn_v)
     good_notams_df.to_csv(f'./data/possitive_unique_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
     tfr_notams_df = pd.read_csv('./data/tfr_notams.csv', engine="python" )
     check_good_notams(conn, tfr_notams_df,good_notams_df)
        
-    # bad_notams_df = create_bad_notams(conn_v, cur_v)
-    # bad_notams_df.to_csv(f'./data/negative_unique_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
+    bad_notams_df = create_bad_notams(conn_v, cur_v)
+    bad_notams_df.to_csv(f'./data/negative_unique_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
 
     conn.close()
     
+
+def main():
+    pass
 
 if __name__ == "__main__":
     main()

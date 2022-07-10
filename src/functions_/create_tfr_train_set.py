@@ -28,17 +28,6 @@ exclusion_words = """obst* OR fire OR unmanned OR crane OR uas OR aerial OR dril
                             OR baloon* OR balloon* OR hurricane* OR "transfered from ship" OR "troop transport" 
                             OR construction OR "radio unavailable" OR "handled by falcon radio" OR rattlesnake """
 
-exclusion_list  = ['obst','obstruct','obstn', 'obstruction',
-            'fire', 'unmanned', 'crane', 'uas', 'aerial', 'drill', 'installed',
-            'terminal','parking', 'rwy', 'taxi', 'twy', 'hangar', 'chemical',
-            'pavement', 'firing', "out of service", 'volcan', 'turbine', 'flare', 'wx',
-            'weather','aerodrome', 'apron', 'tower', 'hospital', 'covid', 'medical'
-            'copter', 'disabled passenger', 'passanger', 'arctic', 'artic' ,'defense', 'defence'
-            'helipad','bird','laser','heliport', 'ordnance','decommisioned','decomissioned'
-            'dropzone','runway','wind','aerobatic', 'airfiel', 'model','para', 'parachute' 
-            'jumpers','paradrops','glide','tcas','accident','investigation','training' 
-            'approach', 'explosion', 'explosive', 'demolition','demolitions', 'baloon', 'balloon', 'hurricane']
-
 # use in finding TFR notams
 exclusions = """ NOT (obst* OR fire OR unmanned OR crane OR uas OR aerial OR drill OR installed OR 
                             terminal OR parking OR rwy OR taxi OR twy OR hangar OR chemical OR pavement OR 

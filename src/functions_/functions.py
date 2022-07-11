@@ -57,15 +57,21 @@ def get_matches_index_dict(matches_df):
     return matches_dict
 
 
-def get_triplet_index():
+def get_quadruplet_index():
     conn = sqlite3.Connection(root + "/data/svo_db_20201027.db")
     sql = """ SELECT * FROM human_matches"""
     matches_df = pd.read_sql_query(sql, conn)
     conn.close()
 
-    anchor_index = []
-    positive_index = []
-    negative_index = []
+    bad_df = pd.read_csv(
+        root + "/data/negative_unique_notams.0709.csv", sep=","
+    )
+    bad_data = np.squeeze(bad_df[['NOTAM_REC_ID']].to_numpy())
+
+    anchor = []
+    positive = []
+    negative_one = []
+    negative_two = []
     matches_dict = get_matches_index_dict(matches_df)
     matches_dict_keys = list(matches_dict.keys())
 
@@ -79,12 +85,19 @@ def get_triplet_index():
             temp_values = matches_dict[rand_key]
             anchor, positive = pair
             negative = random.choice(temp_values)
-            anchor_index.append(anchor)
-            positive_index.append(positive)
-            negative_index.append(negative)
+            anchor.append(anchor)
+            positive.append(positive)
+            negative_one.append(negative)
+
+    rng = np.random.default_rng()
+    negative_two = rng.choice(bad_data, size=len(anchor), replace=False).tolist()
+    
+    assert len(anchor) == len(positive)
+    assert len(anchor) == len(negative_one)
+    assert len(anchor) == len(negative_two)
 
     # this returns NOTAM_REC_ID - not dataframe index
-    return (anchor_index, positive_index, negative_index)
+    return (anchor, positive, negative_one, negative_two)
 
 
 def fromBuffer(byte_embeddings):

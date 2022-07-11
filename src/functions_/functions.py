@@ -68,10 +68,10 @@ def get_quadruplet_index():
     )
     bad_data = np.squeeze(bad_df[['NOTAM_REC_ID']].to_numpy())
 
-    anchor = []
-    positive = []
-    negative_one = []
-    negative_two = []
+    anchor_list = []
+    positive_list = []
+    negative_one_list = []
+    negative_two_list = []
     matches_dict = get_matches_index_dict(matches_df)
     matches_dict_keys = list(matches_dict.keys())
 
@@ -85,19 +85,19 @@ def get_quadruplet_index():
             temp_values = matches_dict[rand_key]
             anchor, positive = pair
             negative = random.choice(temp_values)
-            anchor.append(anchor)
-            positive.append(positive)
-            negative_one.append(negative)
+            anchor_list.append(anchor)
+            positive_list.append(positive)
+            negative_one_list.append(negative)
 
     rng = np.random.default_rng()
-    negative_two = rng.choice(bad_data, size=len(anchor), replace=False).tolist()
+    negative_two_list = rng.choice(bad_data, size=len(anchor_list), replace=False).tolist()
     
-    assert len(anchor) == len(positive)
-    assert len(anchor) == len(negative_one)
-    assert len(anchor) == len(negative_two)
+    assert len(anchor_list) == len(positive_list)
+    assert len(anchor_list) == len(negative_one_list)
+    assert len(anchor_list) == len(negative_two_list)
 
     # this returns NOTAM_REC_ID - not dataframe index
-    return (anchor, positive, negative_one, negative_two)
+    return (anchor_list, positive_list, negative_one_list, negative_two_list)
 
 
 def fromBuffer(byte_embeddings):

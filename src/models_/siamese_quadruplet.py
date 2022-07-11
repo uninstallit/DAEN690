@@ -97,6 +97,8 @@ def get_base_network(mixed_input_shape, embedding_input_shape):
     concat = tf.keras.layers.concatenate([mixed_outputs, embedding_outputs])
     x = tf.keras.layers.Dense(384, activation="relu")(concat)
     x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Dense(384, activation="relu")(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
     outputs = tf.keras.layers.Dense(384, activation="linear")(x)
     # outputs = tf.keras.layers.Lambda(lambda v: tf.math.l2_normalize(v, axis=1))(x)
 
@@ -117,10 +119,10 @@ def get_siamese_network(inputs_shape, base_model):
         name="positive_data", shape=mixed_data_shape
     )
     negative_one_data_input = tf.keras.layers.Input(
-        name="negative_data", shape=mixed_data_shape
+        name="negative_data_one", shape=mixed_data_shape
     )
     negative_two_data_input = tf.keras.layers.Input(
-        name="negative_data", shape=mixed_data_shape
+        name="negative_data_two", shape=mixed_data_shape
     )
 
     anchor_embd_input = tf.keras.layers.Input(
@@ -130,10 +132,10 @@ def get_siamese_network(inputs_shape, base_model):
         name="positive_embd", shape=embeddings_shape
     )
     negative_one_embd_input = tf.keras.layers.Input(
-        name="negative_embd", shape=embeddings_shape
+        name="negative_embd_one", shape=embeddings_shape
     )
     negative_two_embd_input = tf.keras.layers.Input(
-        name="negative_embd", shape=embeddings_shape
+        name="negative_embd_two", shape=embeddings_shape
     )
 
     distances = DistanceLayer()(
@@ -226,7 +228,7 @@ def main():
 
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.00001))
-    history = siamese_model.fit(train_dataset, epochs=100, validation_data=val_dataset)
+    history = siamese_model.fit(train_dataset, epochs=200, validation_data=val_dataset)
 
     base_network.save(root + "/src/saved_models_/qsmy_model")
 

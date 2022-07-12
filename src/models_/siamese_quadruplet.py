@@ -210,10 +210,10 @@ def main():
     train_dataset = dataset.take(round(len(anchor_data) * 0.5))
     val_dataset = dataset.skip(round(len(anchor_data) * 0.5))
 
-    train_dataset = train_dataset.batch(128, drop_remainder=False)
+    train_dataset = train_dataset.batch(32, drop_remainder=False)
     train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
 
-    val_dataset = val_dataset.batch(128, drop_remainder=False)
+    val_dataset = val_dataset.batch(32, drop_remainder=False)
     val_dataset = val_dataset.prefetch(tf.data.AUTOTUNE)
 
     mixed_data_input_shape = (4,)
@@ -226,9 +226,9 @@ def main():
 
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
-    history = siamese_model.fit(train_dataset, epochs=125, validation_data=val_dataset)
+    history = siamese_model.fit(train_dataset, epochs=100, validation_data=val_dataset)
 
-    base_network.save(root + "/src/saved_models_/qsmy_model_125")
+    base_network.save(root + "/src/saved_models_/qsmy_model_100")
 
     # *** inference ***
 

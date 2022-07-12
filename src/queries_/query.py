@@ -37,7 +37,7 @@ def get_selected_notams(conn, tfr_rec_id, selected_notams):
     sql = sql.format(list_rec_id=tuple([rec_id for rec_id, s in selected_notams]))
     notams_df = pd.read_sql_query(sql, conn)
 
-    # order scores to match with the order of notams_df NOTAM_REC_ID
+    # set scores to notams_df
     scores = []
     for i, row in notams_df.iterrows():
         found = [item for item in selected_notams if item[0] == row["NOTAM_REC_ID"]]
@@ -46,7 +46,8 @@ def get_selected_notams(conn, tfr_rec_id, selected_notams):
             scores.append(score)
         else:
             scores.append(0)
-    notams_df.insert(1, "SCORE", pd.Series(scores))
+    notams_df.insert(1, 'SCORE', pd.Series(scores))
+    notams_df = notams_df.sort_values('SCORE', ascending=False)
 
     # denote a row is a TFR
     notams_df["TFR_FLAG"] = notams_df.apply(
@@ -257,16 +258,15 @@ def nlp_match(
         "LAUNCHES_REC_ID",
         "NOTAM_REC_ID",
         "SCORE",
-        "MIN_ALT_K",
-        "MAX_ALT_K",
         "LAUNCH_DATE",
-        "ISSUE_DATE",
         "POSSIBLE_START_DATE",
         "POSSIBLE_END_DATE",
         "E_CODE",
         "LOCATION_CODE",
         "ACCOUNT_ID",
         "TFR_FLAG",
+        "MIN_ALT_K",
+        "MAX_ALT_K",
     ]
 
     # use launch_ids_param list if any
@@ -330,6 +330,18 @@ def main():
     print(f"Elapse time: {str(timedelta(seconds=end-start))}")
 
     ##### print and write results to csv, db
+    display_cols = [
+        "LAUNCHES_REC_ID",
+        "NOTAM_REC_ID",
+        "SCORE",
+        "POSSIBLE_START_DATE",
+        "POSSIBLE_END_DATE",
+        "E_CODE",
+        "LOCATION_CODE",
+        "ACCOUNT_ID",
+        "TFR_FLAG",
+        "MAX_ALT_K",
+    ]
     ss_results = []
     tx_results = []
     ms_results = []
@@ -355,7 +367,7 @@ def main():
             f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE'] }"
         )
         print(f"Related NOTAMs:")
-        print(ss_matches_df)
+        print(ss_matches_df[display_cols])
 
         print(f"\n---Siamese Text Model")
         print(
@@ -365,7 +377,7 @@ def main():
             f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE']}"
         )
         print(f"Related NOTAMs:")
-        print(ts_matches_df)
+        print(ts_matches_df[display_cols])
 
         print(f"\n---Siamese Mix Model")
         print(
@@ -375,7 +387,7 @@ def main():
             f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE'] }"
         )
         print(f"Related NOTAMs:")
-        print(ms_matches_df)
+        print(ms_matches_df[display_cols])
 
     # write out the results
     ss_results_df = pd.concat(ss_results)

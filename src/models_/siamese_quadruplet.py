@@ -26,7 +26,7 @@ class SiameseModel(tf.keras.Model):
        L(A, P, N) = max(‖f(A) - f(P)‖² - ‖f(A) - f(N)‖² + margin, 0)
     """
 
-    def __init__(self, siamese_network, margin=1.00):
+    def __init__(self, siamese_network, margin=1.0):
         super(SiameseModel, self).__init__()
         self.siamese_network = siamese_network
         self.margin = margin
@@ -37,7 +37,7 @@ class SiameseModel(tf.keras.Model):
 
     def _compute_loss(self, data):
         ap_distance, an_distance_one, an_distance_two = self.siamese_network(data)
-        loss_one = tf.maximum(ap_distance - an_distance_one + 0.25 * self.margin, 0.0)
+        loss_one = tf.maximum(ap_distance - an_distance_one + 0.5 * self.margin, 0.0)
         loss_two = tf.maximum(ap_distance - an_distance_two + self.margin, 0.0)
         loss = loss_one + loss_two
         return loss
@@ -83,7 +83,7 @@ def get_base_network(mixed_input_shape, embedding_input_shape):
     mixed_inputs = tf.keras.Input(shape=mixed_input_shape, name="mixed")
     x = tf.keras.layers.Dense(64, activation="relu")(mixed_inputs)
     x = tf.keras.layers.Dropout(0.5)(x)
-    mixed_outputs = tf.keras.layers.Dense(384, activation="sigmoid")(x)
+    mixed_outputs = tf.keras.layers.Dense(384, activation="relu")(x)
 
     # embeddings
     embedding_inputs = tf.keras.Input(shape=embedding_input_shape, name="text")
@@ -96,8 +96,6 @@ def get_base_network(mixed_input_shape, embedding_input_shape):
     # combine branches
     concat = tf.keras.layers.concatenate([mixed_outputs, embedding_outputs])
     x = tf.keras.layers.Dense(384, activation="relu")(concat)
-    x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(384, activation="relu")(x)
     x = tf.keras.layers.Dropout(0.5)(x)
     outputs = tf.keras.layers.Dense(384, activation="linear")(x)
     # outputs = tf.keras.layers.Lambda(lambda v: tf.math.l2_normalize(v, axis=1))(x)
@@ -206,16 +204,16 @@ def main():
             negative_two_embd_dataset,
         )
     )
-    dataset = dataset.shuffle(buffer_size=1024)
+    dataset = dataset.shuffle(buffer_size=4096)
     assert len(anchor_data) == len(anchor_embeddings)
 
-    train_dataset = dataset.take(round(len(anchor_data) * 0.75))
-    val_dataset = dataset.skip(round(len(anchor_data) * 0.75))
+    train_dataset = dataset.take(round(len(anchor_data) * 0.5))
+    val_dataset = dataset.skip(round(len(anchor_data) * 0.5))
 
-    train_dataset = train_dataset.batch(32, drop_remainder=False)
+    train_dataset = train_dataset.batch(128, drop_remainder=False)
     train_dataset = train_dataset.prefetch(tf.data.AUTOTUNE)
 
-    val_dataset = val_dataset.batch(32, drop_remainder=False)
+    val_dataset = val_dataset.batch(128, drop_remainder=False)
     val_dataset = val_dataset.prefetch(tf.data.AUTOTUNE)
 
     mixed_data_input_shape = (4,)
@@ -227,10 +225,10 @@ def main():
     )
 
     siamese_model = SiameseModel(siamese_network)
-    siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.00001))
-    history = siamese_model.fit(train_dataset, epochs=200, validation_data=val_dataset)
+    siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
+    history = siamese_model.fit(train_dataset, epochs=125, validation_data=val_dataset)
 
-    base_network.save(root + "/src/saved_models_/qsmy_model")
+    base_network.save(root + "/src/saved_models_/qsmy_model_125")
 
     # *** inference ***
 

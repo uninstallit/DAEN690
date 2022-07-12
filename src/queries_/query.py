@@ -122,7 +122,7 @@ def siamese_text_search(query_ids, tfr_embeddings, query_embeddings, top_pick_pa
 def siamese_mix_search(
     query_ids, tfr_data, tfr_embeddings, query_data, query_embeddings, top_pick_param
 ):
-    base_network = tf.keras.models.load_model(root + "/src/saved_models_/qsmy_model_100")
+    base_network = tf.keras.models.load_model(root + "/src/saved_models_/qsmy_model")
     cosine_similarity = tf.keras.metrics.CosineSimilarity()
     anch_prediction = base_network.predict([tfr_data, tfr_embeddings])
 
@@ -310,7 +310,7 @@ def main():
     print(f"Total number of launches has TFR len:{len(input_tfrs_df)}")
 
     # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
-    launch_ids_param = [284]
+    launch_ids_param = [391]
     top_pick_param = 10
     radius_param = 50
     debug_flag = False  # turn off console print debug

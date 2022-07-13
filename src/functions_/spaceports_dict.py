@@ -7,6 +7,8 @@ import numpy as np
 # Airport Data to find ARTCC for spaceports: https://www.airport-data.com 
 # ICAO https://www.faa.gov/air_traffic/publications/atpubs/locid_html/chap1_section_6_paragraph_H.html
 # https://en.wikipedia.org/wiki/List_of_U.S._Air_Route_Traffic_Control_Centers
+# https://www.airport-data.com/airport/ANC
+# https://www.airnav.com/airport/anc
 
 # store artcc as a string for each spaceport ready for sql to use
 spaceport_artcc_dict = {} 

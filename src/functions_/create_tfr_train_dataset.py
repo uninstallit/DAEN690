@@ -21,12 +21,11 @@ exclusion_words = """obst* OR fire OR unmanned OR crane OR uas OR aerial OR dril
                             aerodrome OR apron OR tower OR hospital OR covid OR medical OR copter OR 
                             disabled OR passenger OR passanger OR arctic OR artic OR defense OR defence OR 
                             helipad OR bird OR laser OR heliport OR ordnance OR decommisioned OR decomissioned OR 
-                            dropzone OR runway OR wind OR aerobatic OR airfield OR model  OR 
-                            para*  OR parachute OR jumpers OR paradrops OR 
-                            glide OR tcas OR accident OR investigation OR training OR 
-                            approach OR explosion OR explosive OR demolitions 
-                            OR baloon* OR balloon* OR hurricane* OR "transfered from ship" OR "troop transport" 
-                            OR construction OR "radio unavailable" OR "handled by falcon radio" OR rattlesnake """
+                            dropzone OR runway OR wind OR aerobatic OR airfield OR model OR para* OR parachute OR 
+                            jumpers OR paradrops OR glide OR tcas OR accident OR investigation OR training OR 
+                            approach OR explosion OR explosive OR demolitions OR
+                            baloon* OR balloon* OR hurricane* OR "transfered from ship" OR "troop transport" OR
+                            construction OR "radio unavailable" OR "handled by falcon radio" OR rattlesnake """
 
 # use in finding TFR notams
 exclusions = """ NOT (obst* OR fire OR unmanned OR crane OR uas OR aerial OR drill OR installed OR 
@@ -35,16 +34,16 @@ exclusions = """ NOT (obst* OR fire OR unmanned OR crane OR uas OR aerial OR dri
                             aerodrome OR apron OR tower OR hospital OR covid OR medical OR copter OR 
                             disabled OR passenger OR passanger OR arctic OR artic OR defense OR defence OR 
                             helipad OR bird OR laser OR heliport OR ordnance OR decommisioned OR decomissioned OR 
-                            dropzone OR runway OR wind OR aerobatic OR airfield OR model OR 
-                            para* OR parachute OR jumpers OR paradrops OR glide OR tcas OR accident OR investigation OR 
-                            training OR approach OR explosion OR explosive OR demolitions 
-                            OR baloon* OR balloon* OR hurricane OR "transfered from ship" OR "troop transport" 
-                            OR construction OR "radio unavailable" OR "handled by falcon radio" OR rattlesnake) """
+                            dropzone OR runway OR wind OR aerobatic OR airfield OR model OR para* OR parachute OR 
+                            jumpers OR paradrops OR glide OR tcas OR accident OR investigation OR 
+                            training OR approach OR explosion OR explosive OR demolitions OR
+                            baloon* OR balloon* OR hurricane OR "transfered from ship" OR "troop transport" OR
+                            construction OR "radio unavailable" OR "handled by falcon radio" OR rattlesnake) """
     
 # add vehicle name to the initial inclusion_words for this dataset notams
 inclusions = """launch OR space OR "91*143" OR "attention airline dispatchers" OR "hazard area" 
             OR "stnr alt" OR "stnr altitude" OR "stationary alt*" 
-            OR "temporary flight restriction*" OR "temporary flt rest*" OR "flight rest*" OR tfr 
+            OR "temporary flight restriction*" OR "temporary flt rest*" OR "flight rest*"
             OR rocket OR missile OR canaveral OR kennedy OR nasa OR antares OR orion OR atlas
             OR zenit OR falcon OR dragon OR spaceship OR minuteman OR trident """
 
@@ -151,9 +150,9 @@ def create_virtual_full_text_search_notam_table(conn, cursor):
 def find_initial_tfr(conn_v, cur_v, launch):
     launch_rec_id, launch_date, spaceport_rec_id  = launch['LAUNCHES_REC_ID'], launch['LAUNCH_DATE'], launch['SPACEPORT_REC_ID']
     launch_pad_artcc = get_spaceport_artcc(spaceport_rec_id) 
+
     (location, state_location ) = get_launch_location(spaceports_dict, spaceport_rec_id)
     print(f'* launch:{launch_rec_id} launch_date:{launch_date}, spaceport_rec_id:{spaceport_rec_id} artcc:{launch_pad_artcc} location:{location}, state:{state_location} ')
-
 
     #   |-30days----Possible_start_time-----|launch_time|------Possible_end_time------+30days|
     sql =""" SELECT NOTAM_REC_ID, MIN_ALT as MIN_ALT_K, MAX_ALT as MAX_ALT_K, ISSUE_DATE, POSSIBLE_START_DATE, POSSIBLE_END_DATE, LOCATION_CODE, E_CODE, E_CODE_LC, NOTAM_TYPE FROM virtual_notams 
@@ -172,8 +171,6 @@ def find_initial_tfr(conn_v, cur_v, launch):
     shortest_duration = float('inf')
     if len(notams_df):
         for _, notam in notams_df.iterrows():
-            # if notam['NOTAM_TYPE'] == 'NOTAMC':
-            #     continue
             start_str, end_str = notam['POSSIBLE_START_DATE'], notam['POSSIBLE_END_DATE']
             duration = convert_str_datetime_unix_datetime(end_str) - convert_str_datetime_unix_datetime(start_str)
             if duration < shortest_duration:

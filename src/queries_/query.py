@@ -37,7 +37,7 @@ def get_selected_notams(conn, tfr_rec_id, selected_notams):
     sql = sql.format(list_rec_id=tuple([rec_id for rec_id, s in selected_notams]))
     notams_df = pd.read_sql_query(sql, conn)
 
-    # order scores to match with the order of notams_df NOTAM_REC_ID
+    # set scores to notams_df
     scores = []
     for i, row in notams_df.iterrows():
         found = [item for item in selected_notams if item[0] == row["NOTAM_REC_ID"]]
@@ -46,7 +46,8 @@ def get_selected_notams(conn, tfr_rec_id, selected_notams):
             scores.append(score)
         else:
             scores.append(0)
-    notams_df.insert(1, "SCORE", pd.Series(scores))
+    notams_df.insert(1, 'SCORE', pd.Series(scores))
+    notams_df = notams_df.sort_values('SCORE', ascending=False)
 
     # denote a row is a TFR
     notams_df["TFR_FLAG"] = notams_df.apply(
@@ -168,11 +169,14 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_param, debug_flag):
         raise RuntimeError("Notam query is empty!")
 
     tfr_centroid_df = centroid_df[centroid_df["NOTAM_REC_ID"] == tfr_rec_id]
+    if len(tfr_centroid_df) == 0:
+        raise RuntimeError("TFR Notam centroid is empty!")
+
     tfr_df = pd.merge(tfr_df, tfr_centroid_df)
 
     tfr_x = tfr_df[["LATITUDE", "LONGITUDE"]].to_numpy()
     query_x = query_df[["LATITUDE", "LONGITUDE"]].to_numpy()
-
+    
     # balltree filter
     tree = BallTree(query_x, metric="haversine")
     ind = tree.query_radius(tfr_x, r=radius_param)
@@ -197,11 +201,11 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_param, debug_flag):
     query_embeddings = fromBuffer(query_data[:, 8])
     query_data = query_data[:, 4:-1].astype(
         "float32"
-    )  # TODO as Edvin feature ACCOUNT_ID??
-
+    ) 
     ss_selected = semantic_search(
         query_ids, tfr_embeddings, query_embeddings, top_pick_param
     )
+    
     ts_selected = siamese_text_search(
         query_ids, tfr_embeddings, query_embeddings, top_pick_param
     )
@@ -257,25 +261,23 @@ def nlp_match(
         "LAUNCHES_REC_ID",
         "NOTAM_REC_ID",
         "SCORE",
-        "MIN_ALT_K",
-        "MAX_ALT_K",
         "LAUNCH_DATE",
-        "ISSUE_DATE",
         "POSSIBLE_START_DATE",
         "POSSIBLE_END_DATE",
         "E_CODE",
         "LOCATION_CODE",
         "ACCOUNT_ID",
         "TFR_FLAG",
+        "MIN_ALT_K",
+        "MAX_ALT_K",
     ]
 
-    # use launch_ids_param list if any
+    # use launch_ids_param list otherwise the whole input list  input_tfrs_df input 
     input_tfrs_df = (
         input_tfrs_df.loc[input_tfrs_df["LAUNCHES_REC_ID"].isin(launch_ids_param)]
         if len(launch_ids_param)
         else input_tfrs_df
     )
-
     results = {}  # { launch_rec_id: [tfr, ss, ts, ms]}
     for idx, tfr_info in input_tfrs_df.iterrows():
         launch_rec_id = tfr_info["LAUNCHES_REC_ID"]
@@ -310,10 +312,10 @@ def main():
     print(f"Total number of launches has TFR len:{len(input_tfrs_df)}")
 
     # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
-    launch_ids_param = [391]
+    launch_ids_param = []
     top_pick_param = 10
     radius_param = 50
-    debug_flag = False  # turn off console print debug
+    debug_flag = False # turn off console print debug
 
     start = time.time()
     results = nlp_match(
@@ -328,8 +330,20 @@ def main():
     )
     end = time.time()
     print(f"Elapse time: {str(timedelta(seconds=end-start))}")
-
+   
     ##### print and write results to csv, db
+    display_cols = [
+        "LAUNCHES_REC_ID",
+        "NOTAM_REC_ID",
+        "SCORE",
+        "POSSIBLE_START_DATE",
+        "POSSIBLE_END_DATE",
+        "E_CODE",
+        "LOCATION_CODE",
+        "ACCOUNT_ID",
+        "TFR_FLAG",
+        "MAX_ALT_K",
+    ]
     ss_results = []
     tx_results = []
     ms_results = []
@@ -355,7 +369,7 @@ def main():
             f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE'] }"
         )
         print(f"Related NOTAMs:")
-        print(ss_matches_df)
+        print(ss_matches_df[display_cols])
 
         print(f"\n---Siamese Text Model")
         print(
@@ -365,7 +379,7 @@ def main():
             f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE']}"
         )
         print(f"Related NOTAMs:")
-        print(ts_matches_df)
+        print(ts_matches_df[display_cols])
 
         print(f"\n---Siamese Mix Model")
         print(
@@ -375,7 +389,7 @@ def main():
             f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE'] }"
         )
         print(f"Related NOTAMs:")
-        print(ms_matches_df)
+        print(ms_matches_df[display_cols])
 
     # write out the results
     ss_results_df = pd.concat(ss_results)
@@ -383,8 +397,8 @@ def main():
     ms_results_df = pd.concat(ms_results)
 
     ss_results_df.to_csv(f"./data/team_bravo_semantic_matches.csv", index=False)
-    ts_results_df.to_csv(f"./data/team_bravo_siamese_txt_matches.csv", index=False)
-    ms_results_df.to_csv(f"./data/team_bravo_siamese_mix_matches.csv", index=False)
+    ts_results_df.to_csv(f"./data/team_bravo_siamese1_text_matches.csv", index=False)
+    ms_results_df.to_csv(f"./data/team_bravo_siamese2_mix_matches.csv", index=False)
 
     ss_results_df.to_sql(
         "team_bravo_semantic_matches", conn, if_exists="replace", index=False

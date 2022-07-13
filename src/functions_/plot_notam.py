@@ -143,7 +143,7 @@ def main():
     #plot_notam_data(cursor)
     #plot_notam_missing_polygons(cursor)
     # plot_classification_and_type(cursor)
-    plot_us_classification(cursor)
+    #plot_us_classification(cursor)
     #plot_us_notam_type(cursor)
     #plot_launch_data(conn,  cursor)
     

@@ -142,11 +142,11 @@ def main():
 
     siamese_model = SiameseModel(siamese_network)
     siamese_model.compile(
-        optimizer=tf.keras.optimizers.Adam(0.0001), weighted_metrics=[]
+        optimizer=tf.keras.optimizers.Adam(0.00001), weighted_metrics=[]
     )
-    history = siamese_model.fit(train_dataset, epochs=10, validation_data=val_dataset)
+    history = siamese_model.fit(train_dataset, epochs=15, validation_data=val_dataset)
 
-    base_network.save(root + "/src/saved_models_/smx_model")
+    base_network.save(root + "/src/saved_models_/smux_model")
 
     # *** inference ***
 

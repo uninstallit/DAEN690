@@ -295,9 +295,7 @@ def nlp_match(
 
     return results
 
-
-def main():
-
+def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_param, debug_flag ):
     conn = sqlite3.Connection(root + "/data/svo_db_20201027.db")
 
     sql = """ SELECT * FROM notams """
@@ -308,12 +306,6 @@ def main():
     input_tfrs_df = pd.read_csv(root + "/data/tfr_notams.0709.csv", engine="python")
     print(f"Total number of launches has TFR len:{len(input_tfrs_df)}")
 
-    # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
-    launch_ids_param = []
-    top_pick_param = 10
-    radius_param = 50
-    debug_flag = False # turn off console print debug
-
     start = time.time()
     results = nlp_match(
         conn,
@@ -322,7 +314,7 @@ def main():
         notams_df,
         launch_ids_param,
         top_pick_param,
-        radius_param,
+        balltree_radius_param,
         debug_flag,
     )
     end = time.time()
@@ -411,6 +403,10 @@ def main():
     # then they are related notams
 
     conn.close()
+
+def main():
+    pass
+    
 
 
 if __name__ == "__main__":

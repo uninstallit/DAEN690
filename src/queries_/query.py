@@ -169,11 +169,14 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_param, debug_flag):
         raise RuntimeError("Notam query is empty!")
 
     tfr_centroid_df = centroid_df[centroid_df["NOTAM_REC_ID"] == tfr_rec_id]
+    if len(tfr_centroid_df) == 0:
+        raise RuntimeError("TFR Notam centroid is empty!")
+
     tfr_df = pd.merge(tfr_df, tfr_centroid_df)
 
     tfr_x = tfr_df[["LATITUDE", "LONGITUDE"]].to_numpy()
     query_x = query_df[["LATITUDE", "LONGITUDE"]].to_numpy()
-
+    
     # balltree filter
     tree = BallTree(query_x, metric="haversine")
     ind = tree.query_radius(tfr_x, r=radius_param)
@@ -198,11 +201,11 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_param, debug_flag):
     query_embeddings = fromBuffer(query_data[:, 8])
     query_data = query_data[:, 4:-1].astype(
         "float32"
-    )  # TODO as Edvin feature ACCOUNT_ID??
-
+    ) 
     ss_selected = semantic_search(
         query_ids, tfr_embeddings, query_embeddings, top_pick_param
     )
+    
     ts_selected = siamese_text_search(
         query_ids, tfr_embeddings, query_embeddings, top_pick_param
     )
@@ -269,13 +272,12 @@ def nlp_match(
         "MAX_ALT_K",
     ]
 
-    # use launch_ids_param list if any
+    # use launch_ids_param list otherwise the whole input list  input_tfrs_df input 
     input_tfrs_df = (
         input_tfrs_df.loc[input_tfrs_df["LAUNCHES_REC_ID"].isin(launch_ids_param)]
         if len(launch_ids_param)
         else input_tfrs_df
     )
-
     results = {}  # { launch_rec_id: [tfr, ss, ts, ms]}
     for idx, tfr_info in input_tfrs_df.iterrows():
         launch_rec_id = tfr_info["LAUNCHES_REC_ID"]
@@ -310,10 +312,10 @@ def main():
     print(f"Total number of launches has TFR len:{len(input_tfrs_df)}")
 
     # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
-    launch_ids_param = [391]
+    launch_ids_param = []
     top_pick_param = 10
     radius_param = 50
-    debug_flag = False  # turn off console print debug
+    debug_flag = False # turn off console print debug
 
     start = time.time()
     results = nlp_match(
@@ -328,7 +330,7 @@ def main():
     )
     end = time.time()
     print(f"Elapse time: {str(timedelta(seconds=end-start))}")
-
+   
     ##### print and write results to csv, db
     display_cols = [
         "LAUNCHES_REC_ID",
@@ -395,8 +397,8 @@ def main():
     ms_results_df = pd.concat(ms_results)
 
     ss_results_df.to_csv(f"./data/team_bravo_semantic_matches.csv", index=False)
-    ts_results_df.to_csv(f"./data/team_bravo_siamese_txt_matches.csv", index=False)
-    ms_results_df.to_csv(f"./data/team_bravo_siamese_mix_matches.csv", index=False)
+    ts_results_df.to_csv(f"./data/team_bravo_siamese1_text_matches.csv", index=False)
+    ms_results_df.to_csv(f"./data/team_bravo_siamese2_mix_matches.csv", index=False)
 
     ss_results_df.to_sql(
         "team_bravo_semantic_matches", conn, if_exists="replace", index=False

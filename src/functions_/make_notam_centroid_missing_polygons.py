@@ -200,16 +200,21 @@ def main():
     cursor = conn.cursor()
     
     # find centroids for those missing polygon NOTAMs
-    notam_id_missing_polygons = find_notams_missing_polygons(cursor)
-    print(f'Found Notams missing polygons:{len(notam_id_missing_polygons)}')
+    # notam_id_missing_polygons = find_notams_missing_polygons(cursor)
+    # print(f'Found Notams missing polygons:{len(notam_id_missing_polygons)}')
 
-    # search rules: Q_Code->AFFECTED_FIR->FDC->AIRPORT->ARTCC
+    # # search rules: Q_Code->AFFECTED_FIR->FDC->AIRPORT->ARTCC
     make_notam_centroids_from_Qcode(conn, cursor)
     make_notam_centroids_from_affected_FIR_US(conn, cursor)
     make_notam_centroids_from_location_code_FDC(conn, cursor)
     make_notam_centroids_from_location_code_Airport(conn, cursor)
-    make_notam_centroids_from_location_ARTCC(conn, cursor)
     
+    # NOTAM REC_ID= 1126008 location_code='ZAN' is a TFR notam but doesn't have a centroid causing balltree failed.
+    # Mnually add it to the notam_centroids table
+    insert_query = """insert into notam_centroids (NOTAM_REC_ID, LATITUDE , LONGITUDE, RADIUS_NM) VALUES (1126008, 61.1744, -149.996,0) """
+    cursor.execute(insert_query)
+    conn.commit()
+
     conn.close()
 
 if __name__ == "__main__":

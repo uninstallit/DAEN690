@@ -1,12 +1,10 @@
 import sqlite3
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 import time
 from datetime import timedelta
 from sklearn.neighbors import BallTree
-
-# import tensorflow as tf
-
 
 # balltree source
 # source: https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.BallTree.html
@@ -19,15 +17,14 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(root)
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf
 
 from functions_.functions import fromBuffer, inputNoneValues
 from functions_.spaceports_dict import get_launch_location, get_spaceports_dict
 from pipelines_.pipelines import features_pipeline
 
-tf.get_logger().setLevel("ERROR")
+tf.keras.utils.disable_interactive_logging()
 
 
 def get_selected_notams(conn, tfr_rec_id, selected_notams):

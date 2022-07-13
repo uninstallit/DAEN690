@@ -228,7 +228,7 @@ def main():
     siamese_model.compile(optimizer=tf.keras.optimizers.Adam(0.0001))
     history = siamese_model.fit(train_dataset, epochs=100, validation_data=val_dataset)
 
-    base_network.save(root + "/src/saved_models_/qsmy_model_100")
+    base_network.save(root + "/src/saved_models_/qsmy_model")
 
     # *** inference ***
 

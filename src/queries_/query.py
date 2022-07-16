@@ -148,7 +148,7 @@ SQL = """ SELECT * FROM notams
         AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+1 day'); """
 
 
-def query(conn, centroid_df, tfr_df, top_pick_param, radius_param, debug_flag):
+def query(conn, centroid_df, tfr_df, top_pick_param, radius_nm_param, debug_flag):
     print(f"query.....")
     tfr_rec_id = tfr_df.iloc[0]["NOTAM_REC_ID"]  # Only one TFR per launch event
     start_date = tfr_df["POSSIBLE_START_DATE"].tolist()[0]
@@ -171,14 +171,22 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_param, debug_flag):
 
     tfr_df = pd.merge(tfr_df, tfr_centroid_df)
 
-    tfr_x = tfr_df[["LATITUDE", "LONGITUDE"]].to_numpy()
-    query_x = query_df[["LATITUDE", "LONGITUDE"]].to_numpy()
+    tfr_x = tfr_df[["LATITUDE", "LONGITUDE"]].values
+    query_x = query_df[["LATITUDE", "LONGITUDE"]].values
     
+    tfr_x =  np.radians(tfr_x)
+    query_x = np.radians(query_x)
+    # 
+    earth_radius_in_miles = 3958.8
+    radius = radius_nm_param/earth_radius_in_miles
+
     # balltree filter
     tree = BallTree(query_x, metric="haversine")
-    ind = tree.query_radius(tfr_x, r=radius_param)
+    ind,  distances  = tree.query_radius(tfr_x, r=radius, count_only=False,  return_distance=True)
+    # distances_in_miles = distances * earth_radius_in_miles
+   
     if debug_flag:
-        print(f"Balltree filter by radius:{radius_param}nm")
+        print(f"Balltree filter by radius:{radius}nm")
         print(f"ind:{ind}")
         # # print(ind)  # indices of 3 closest neighbors
         # # print(dist)  # distances to 3 closest neighbors

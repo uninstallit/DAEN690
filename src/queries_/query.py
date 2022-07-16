@@ -304,7 +304,6 @@ def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_para
     centroid_df = pd.read_sql_query(sql, conn)
     spaceports_dict = get_spaceports_dict(conn)
     input_tfrs_df = pd.read_csv(root + "/data/tfr_notams.0709.csv", engine="python")
-    print(f"Total number of launches has TFR len:{len(input_tfrs_df)}")
 
     start = time.time()
     results = nlp_match(

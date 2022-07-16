@@ -17,15 +17,14 @@ def main():
     if CREATE_TRAIN_SET_FLAG:
         create_tfr_train_dataset()
 
+    available_launch_ids = pd.read_csv(dir + "/data/tfr_notams.0709.csv", engine="python")
+    print(f"Available launch_rec_ids have TFR. Total:{len(available_launch_ids)}")
+    available_launch_ids = [row['LAUNCHES_REC_ID'] for i, row in available_launch_ids.iterrows()]
+    print(available_launch_ids)
+
     if PREDICT_NOTAMS_FLAG:
-
-        available_launch_ids = pd.read_csv(dir + "/data/tfr_notams.0709.csv", engine="python")
-        print(f"Available launch_rec_ids have TFR. Total:{len(available_launch_ids)}")
-        available_launch_ids = [row['LAUNCHES_REC_ID'] for i, row in available_launch_ids.iterrows()]
-        print(available_launch_ids)
-
         # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
-        launch_ids_param = [391]
+        launch_ids_param = [360]
         top_pick_param = 10
         balltree_radius_param = 50  # in Nautical Mile
         debug_flag = False # turn off console print debug

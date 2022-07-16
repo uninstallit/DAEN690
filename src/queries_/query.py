@@ -31,7 +31,12 @@ def get_selected_notams(conn, tfr_rec_id, selected_notams):
     sql = """ SELECT notam_rec_id, e_code, possible_start_date, possible_end_date, location_code, 
               min_alt as MIN_ALT_K, max_alt as MAX_ALT_K, issue_date, account_id FROM notams 
               where notam_rec_id in {list_rec_id} """
-    sql = sql.format(list_rec_id=tuple([rec_id for rec_id, s in selected_notams]))
+
+    list_rec_id = [rec_id for rec_id, s in selected_notams]
+    list_rec_id = ', '.join(str(rec_id) for rec_id in list_rec_id)
+    list_rec_id = f"({list_rec_id})"
+    
+    sql = sql.format(list_rec_id=list_rec_id)
     notams_df = pd.read_sql_query(sql, conn)
 
     # set scores to notams_df

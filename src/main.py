@@ -24,10 +24,10 @@ def main():
 
     if PREDICT_NOTAMS_FLAG:
         # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
-        launch_ids_param = [] # default
-        #launch_ids_param = [360]
+        launch_ids_param = [] # this is a default.  Will run all available launches with tfr
+        #launch_ids_param = [391]
         top_pick_param = 50
-        balltree_radius_in_miles_param = 100  # in miles
+        balltree_radius_in_miles_param = 200 
         debug_flag = False # turn off console print debug
         predict_related_notams(launch_ids_param, top_pick_param, balltree_radius_in_miles_param, debug_flag)
 

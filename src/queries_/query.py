@@ -144,23 +144,26 @@ def siamese_mix_search(
     return ms_selected
 
 
+# query all notams a day before and a day after the start and end date of TFR and also active during the launch time.
 SQL = """ SELECT * FROM notams 
         LEFT JOIN notam_centroids 
         USING(NOTAM_REC_ID) 
         WHERE DATETIME(notams.POSSIBLE_START_DATE) >= DATETIME(\"{start}\", '-1 day') 
         AND DATETIME(notams.POSSIBLE_START_DATE) <= DATETIME(\"{start}\", '+1 day') 
         AND DATETIME(notams.POSSIBLE_END_DATE) >= DATETIME(\"{end}\", '-1 day') 
-        AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+1 day'); """
+        AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+1 day')
+        AND DATETIME(notams.POSSIBLE_START_DATE) <= DATETIME(\"{launch_date}\")
+        AND DATETIME(notams.POSSIBLE_END_DATE) >= DATETIME(\"{launch_date}\") """
 
 
-def query(conn, centroid_df, tfr_df, top_pick_param, radius_in_miles_param, debug_flag):
+def query(conn, centroid_df, launch_date, tfr_df, top_pick_param, radius_in_miles_param, debug_flag):
     print(f"query.....")
     tfr_rec_id = tfr_df.iloc[0]["NOTAM_REC_ID"]  # Only one TFR per launch event
-    start_date = tfr_df["POSSIBLE_START_DATE"].tolist()[0]
-    end_date = tfr_df["POSSIBLE_END_DATE"].tolist()[0]
+    tfr_start_date = tfr_df["POSSIBLE_START_DATE"].tolist()[0]
+    tfr_end_date = tfr_df["POSSIBLE_END_DATE"].tolist()[0]
 
     # query notams in the range of  +1 day and -1 day of the TFR date
-    sql = SQL.format(start=start_date, end=end_date)
+    sql = SQL.format(start=tfr_start_date, end=tfr_end_date, launch_date=launch_date)
     query_df = pd.read_sql_query(sql, conn)
 
     query_df = query_df[query_df["LATITUDE"].notna()]
@@ -191,7 +194,7 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_in_miles_param, debu
     # distances_in_miles = distances * earth_radius_in_miles
    
     if debug_flag:
-        print(f"Balltree filter by radius:{radius}miles")
+        print(f"Balltree filter by radius: {radius_in_miles_param} miles")
         print(f"ind:{ind}")
         # # print(ind)  # indices of 3 closest neighbors
         # # print(dist)  # distances to 3 closest neighbors
@@ -290,11 +293,12 @@ def nlp_match(
     )
     results = {}  # { launch_rec_id: [tfr, ss, ts, ms]}
     for idx, tfr_info in input_tfrs_df.iterrows():
+        launch_date = tfr_info["LAUNCH_DATE"]
         launch_rec_id = tfr_info["LAUNCHES_REC_ID"]
         tfr_notam_rec_id = tfr_info["NOTAM_REC_ID"]
         tfr_notam_df = notams_df[notams_df["NOTAM_REC_ID"] == tfr_notam_rec_id]
         result = query(
-            conn, centroid_df, tfr_notam_df, top_pick_param, radius_in_miles_param, debug_flag
+            conn, centroid_df, launch_date, tfr_notam_df, top_pick_param, radius_in_miles_param, debug_flag
         )
         (ss_matches_df, ts_matches_df, ms_matches_df) = result
         # adding column, reindex results

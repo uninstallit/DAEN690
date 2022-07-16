@@ -148,7 +148,7 @@ SQL = """ SELECT * FROM notams
         AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+1 day'); """
 
 
-def query(conn, centroid_df, tfr_df, top_pick_param, radius_nm_param, debug_flag):
+def query(conn, centroid_df, tfr_df, top_pick_param, radius_in_miles_param, debug_flag):
     print(f"query.....")
     tfr_rec_id = tfr_df.iloc[0]["NOTAM_REC_ID"]  # Only one TFR per launch event
     start_date = tfr_df["POSSIBLE_START_DATE"].tolist()[0]
@@ -176,9 +176,9 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_nm_param, debug_flag
     
     tfr_x =  np.radians(tfr_x)
     query_x = np.radians(query_x)
-    # 
+
     earth_radius_in_miles = 3958.8
-    radius = radius_nm_param/earth_radius_in_miles
+    radius = radius_in_miles_param/earth_radius_in_miles
 
     # balltree filter
     tree = BallTree(query_x, metric="haversine")
@@ -186,7 +186,7 @@ def query(conn, centroid_df, tfr_df, top_pick_param, radius_nm_param, debug_flag
     # distances_in_miles = distances * earth_radius_in_miles
    
     if debug_flag:
-        print(f"Balltree filter by radius:{radius}nm")
+        print(f"Balltree filter by radius:{radius}miles")
         print(f"ind:{ind}")
         # # print(ind)  # indices of 3 closest neighbors
         # # print(dist)  # distances to 3 closest neighbors
@@ -259,7 +259,7 @@ def nlp_match(
     notams_df,
     launch_ids_param,
     top_pick_param,
-    radius_param,
+    radius_in_miles_param,
     debug_flag,
 ):
     cols = [
@@ -289,7 +289,7 @@ def nlp_match(
         tfr_notam_rec_id = tfr_info["NOTAM_REC_ID"]
         tfr_notam_df = notams_df[notams_df["NOTAM_REC_ID"] == tfr_notam_rec_id]
         result = query(
-            conn, centroid_df, tfr_notam_df, top_pick_param, radius_param, debug_flag
+            conn, centroid_df, tfr_notam_df, top_pick_param, radius_in_miles_param, debug_flag
         )
         (ss_matches_df, ts_matches_df, ms_matches_df) = result
         # adding column, reindex results
@@ -303,7 +303,7 @@ def nlp_match(
 
     return results
 
-def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_param, debug_flag ):
+def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_in_miles_param, debug_flag ):
     conn = sqlite3.Connection(root + "/data/svo_db_20201027.db")
 
     sql = """ SELECT * FROM notams """
@@ -321,7 +321,7 @@ def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_para
         notams_df,
         launch_ids_param,
         top_pick_param,
-        balltree_radius_param,
+        balltree_radius_in_miles_param,
         debug_flag,
     )
     end = time.time()

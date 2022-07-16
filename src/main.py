@@ -26,9 +26,9 @@ def main():
         # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
         launch_ids_param = []
         top_pick_param = 10
-        balltree_radius_param = 100  # in Nautical Mile
+        balltree_radius_in_miles_param = 100  # in miles
         debug_flag = False # turn off console print debug
-        predict_related_notams(launch_ids_param, top_pick_param, balltree_radius_param, debug_flag)
+        predict_related_notams(launch_ids_param, top_pick_param, balltree_radius_in_miles_param, debug_flag)
 
 
 if __name__ == "__main__":

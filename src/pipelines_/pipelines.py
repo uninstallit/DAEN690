@@ -12,7 +12,7 @@ sys.path.append(parent)
 root = os.path.dirname(parent)
 sys.path.append(root)
 
-params_path = root + "/data/params.txt"
+params_path = current + "/params.txt"
 
 from transformers_.transformers import (
     SplitAlphaNumericTransformer,

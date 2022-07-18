@@ -118,7 +118,7 @@ def siamese_text_search(query_ids, tfr_embeddings, query_embeddings, top_pick_pa
     text_s_selected = sorted(text_s_selected, key=lambda x: x[1], reverse=True)[
         :top_pick_param
     ]
-    print([(rec_id, s) for rec_id, s in text_s_selected])
+    # print([(rec_id, s) for rec_id, s in text_s_selected])
     return text_s_selected
 
 
@@ -140,7 +140,7 @@ def siamese_mix_search(
         ms_selected.append((notam_rec_id, similarity))
 
     ms_selected = sorted(ms_selected, key=lambda x: x[1], reverse=True)[:top_pick_param]
-    print([(rec_id, s) for rec_id, s in ms_selected])
+    #print([(rec_id, s) for rec_id, s in ms_selected])
     return ms_selected
 
 
@@ -154,6 +154,16 @@ SQL = """ SELECT * FROM notams
         AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+1 day')
         AND DATETIME(notams.POSSIBLE_START_DATE) <= DATETIME(\"{launch_date}\")
         AND DATETIME(notams.POSSIBLE_END_DATE) >= DATETIME(\"{launch_date}\") """
+        
+# SQL = """ SELECT * FROM notams 
+#         LEFT JOIN notam_centroids 
+#         USING(NOTAM_REC_ID) WHERE 
+#         DATETIME(notams.POSSIBLE_START_DATE) >= DATETIME(\"{start}\", '-1 day') 
+#         AND DATETIME(notams.POSSIBLE_END_DATE) <= DATETIME(\"{end}\", '+1 day') 
+
+#         AND DATETIME(notams.POSSIBLE_START_DATE) <= DATETIME(\"{launch_date}\")
+#         AND DATETIME(notams.POSSIBLE_END_DATE) >= DATETIME(\"{launch_date}\")
+#          """
 
 
 def query(conn, centroid_df, launch_date, tfr_df, top_pick_param, radius_in_miles_param, debug_flag):
@@ -400,11 +410,6 @@ def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_in_m
     ss_results_df = pd.concat(ss_results)
     ts_results_df = pd.concat(tx_results)
     ms_results_df = pd.concat(ms_results)
-
-    ss_results_df.to_csv(f"./data/team_bravo_semantic_matches.csv", index=False)
-    ts_results_df.to_csv(f"./data/team_bravo_siamese1_text_matches.csv", index=False)
-    ms_results_df.to_csv(f"./data/team_bravo_siamese2_mix_matches.csv", index=False)
-
     ss_results_df.to_sql(
         "team_bravo_semantic_matches", conn, if_exists="replace", index=False
     )
@@ -414,11 +419,8 @@ def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_in_m
     ms_results_df.to_sql(
         "team_bravo_siamese_mix_matches", conn, if_exists="replace", index=False
     )
-
-    # TODO take care (sanjiv's step3) - need to justify the low score notam list if they have the start/end date and same account_id with others
-    # then they are related notams
-
     conn.close()
+    return (ss_results_df, ts_results_df, ms_results_df)
 
 def main():
     pass

@@ -134,5 +134,3 @@ dmypy.json
 .DS_Store
 sample_data/sample.db
 sample_data/sample.db.zip
-
-!data/params.txt

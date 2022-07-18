@@ -58,7 +58,7 @@ search1 = """(launch {exclusions})
 # for generate good notams
 search2 = """(launch {exclusions})
             OR (space {exclusions}) 
-            OR ("91*143" {exclusions}) 
+            OR ("91.143" {exclusions}) 
             OR ("attention airline dispatchers" {exclusions}) 
             OR ("hazard area" {exclusions} )
             OR ("stnr alt" {exclusions})

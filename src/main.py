@@ -2,6 +2,8 @@
 import sys
 import os
 import pandas as pd
+from datetime import datetime
+
 current = os.path.dirname(os.path.realpath(__file__))
 dir = os.path.dirname(current)
 sys.path.append(dir)
@@ -26,7 +28,7 @@ def main():
         # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
         launch_ids_param = [] # this is a default.  Will run all available launches with tfr
         #launch_ids_param = [391]
-        top_pick_param = 15
+        top_pick_param = 12
         balltree_radius_in_miles_param = 200 
         debug_flag = False # turn off console print debug
 
@@ -37,9 +39,11 @@ def main():
         # ts_results_df.to_csv(f"./data/23_CA_siamese1_text_matches_spaceport_23_Lompocs_CA.csv", index=False)
         # ms_results_df.to_csv(f"./data/23_CA_siamese2_mix_matches_spaceport_23_Lompocs_CA.csv", index=False)
 
+        ss_results_df.to_csv(f'./data/semantic_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
+        ts_results_df.to_csv(f'./data/siamese1_text_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
+        ms_results_df.to_csv(f'./data/siamese2_mix_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
+
     
-
-
 
 if __name__ == "__main__":
     main()

@@ -96,7 +96,7 @@ def semantic_search(query_ids, tfr_embeddings, query_embeddings, top_pick_param)
         similarity_score = tf.keras.metrics.CosineSimilarity()(
             tfr_embeddings, query_embeddings[idx]
         )
-        ss_selected.append((notam_rec_id, similarity_score.numpy()))
+        ss_selected.append((notam_rec_id, round(similarity_score.numpy(),3)))
     ss_selected = sorted(ss_selected, key=lambda x: x[1], reverse=True)[:top_pick_param]
     return ss_selected
 
@@ -113,7 +113,7 @@ def siamese_text_search(query_ids, tfr_embeddings, query_embeddings, top_pick_pa
         cosine_similarity.reset_state()
         cosine_similarity.update_state(anch_prediction, other_prediction)
         similarity = cosine_similarity.result().numpy()
-        text_s_selected.append((notam_rec_id, similarity))
+        text_s_selected.append((notam_rec_id, round(similarity,3)))
 
     text_s_selected = sorted(text_s_selected, key=lambda x: x[1], reverse=True)[
         :top_pick_param
@@ -137,7 +137,7 @@ def siamese_mix_search(
         cosine_similarity.reset_state()
         cosine_similarity.update_state(anch_prediction, other_prediction)
         similarity = cosine_similarity.result().numpy()
-        ms_selected.append((notam_rec_id, similarity))
+        ms_selected.append((notam_rec_id, round(similarity,3)))
 
     ms_selected = sorted(ms_selected, key=lambda x: x[1], reverse=True)[:top_pick_param]
     #print([(rec_id, s) for rec_id, s in ms_selected])

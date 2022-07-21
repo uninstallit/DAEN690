@@ -8,7 +8,7 @@ current = os.path.dirname(os.path.realpath(__file__))
 dir = os.path.dirname(current)
 sys.path.append(dir)
 
-from functions_.create_tfr_train_dataset import create_tfr_train_dataset
+from functions_.create_tfr_train_dataset import create_tfr_notams_dataset_and_train_dataset
 from queries_.query  import predict_related_notams
 
 def main():
@@ -17,14 +17,15 @@ def main():
     PREDICT_NOTAMS_FLAG = True
 
     if CREATE_TRAIN_SET_FLAG:
-        create_tfr_train_dataset()
+        create_tfr_notams_dataset_and_train_dataset()
 
-    available_launch_ids = pd.read_csv(dir + "/data/tfr_notams.0709.csv", engine="python")
-    print(f"Available launch_rec_ids have TFR. Total:{len(available_launch_ids)}")
-    available_launch_ids = [row['LAUNCHES_REC_ID'] for i, row in available_launch_ids.iterrows()]
-    print(available_launch_ids)
-
+   
     if PREDICT_NOTAMS_FLAG:
+        available_launch_ids = pd.read_csv(dir + "/data/tfr_notams.0709.csv", engine="python")
+        print(f"Available launch_rec_ids have TFR. Total:{len(available_launch_ids)}")
+        available_launch_ids = [row['LAUNCHES_REC_ID'] for i, row in available_launch_ids.iterrows()]
+        print(available_launch_ids)
+
         # specify launch_rec_id you wish to run launch. Empty launch_ids_param array will run all 103 launches
         launch_ids_param = [] # this is a default.  Will run all available launches with tfr
         #launch_ids_param = [391]
@@ -39,11 +40,10 @@ def main():
         # ts_results_df.to_csv(f"./data/23_CA_siamese1_text_matches_spaceport_23_Lompocs_CA.csv", index=False)
         # ms_results_df.to_csv(f"./data/23_CA_siamese2_mix_matches_spaceport_23_Lompocs_CA.csv", index=False)
 
-        ss_results_df.to_csv(f'./data/semantic_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
-        ts_results_df.to_csv(f'./data/siamese1_text_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
-        ms_results_df.to_csv(f'./data/siamese2_mix_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
+        ss_results_df.to_csv(f'./data/team_bravo_semantic_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
+        ts_results_df.to_csv(f'./data/team_bravo_siamese1_text_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
+        ms_results_df.to_csv(f'./data/team_bravo_siamese2_mix_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
 
     
-
 if __name__ == "__main__":
     main()

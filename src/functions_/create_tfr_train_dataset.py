@@ -47,12 +47,14 @@ inclusions = """launch OR space OR "91*143" OR "attention airline dispatchers" O
             OR rocket OR missile OR canaveral OR kennedy OR nasa OR antares OR orion OR atlas
             OR zenit OR falcon OR dragon OR spaceship OR minuteman OR trident """
 
-# for finding TFR notams
+# use in finding TFR notams
 search1 = """(launch {exclusions})
             OR (space {exclusions}) 
             OR (rocket {exclusions}) OR (missile {exclusions}) OR (canaveral {exclusions}) OR (kennedy {exclusions}) OR (nasa {exclusions} )
             OR (antares {exclusions}) OR (orion {exclusions}) OR (atlas {exclusions}) OR (zenit {exclusions}) OR (falcon {exclusions}) 
-            OR (dragon {exclusions}) OR (spaceship {exclusions}) OR (minuteman {exclusions}) OR (trident {exclusions}) 
+            OR (dragon {exclusions}) OR (spaceship {exclusions}) OR (minuteman {exclusions}) OR (trident {exclusions}) OR (oriole {exclusions})
+            OR (grasshopper {exclusions}) OR (pegasus {exclusions}) OR (minotaur {exclusions}) OR (mrbm {exclusions}) OR (thaad {exclusions}) 
+            OR (ariane {exclusions}) OR (astra {exclusions}) OR (Pegasus {exclusions})  
             """.format(exclusions=exclusions)
 
 # for generate good notams
@@ -71,43 +73,6 @@ search2 = """(launch {exclusions})
             OR (antares {exclusions}) OR (orion {exclusions}) OR (atlas {exclusions}) OR (zenit {exclusions}) OR (falcon {exclusions}) 
             OR (dragon {exclusions}) OR (spaceship {exclusions}) OR (minuteman {exclusions}) OR (trident {exclusions}) 
             """.format(exclusions=exclusions)
-
-def check_good_notams(conn, tfr_notams_df,good_notams_df ):
-    # check how many tfr notams in the good_notams_df
-    tfr_notams = tfr_notams_df['NOTAM_REC_ID'].to_numpy()
-    saw_tfr_in_good_notams = []
-    tfr_not_in_good_notams = []
-    for trf in tfr_notams:
-        if (good_notams_df['NOTAM_REC_ID'] == trf).any():
-            saw_tfr_in_good_notams.append(trf)
-        else:
-            tfr_not_in_good_notams.append(trf)
-    print(f'saw tfr in good_notams list: {len(saw_tfr_in_good_notams)} // {len(tfr_notams_df)}')
-    print(f'trf not in good_notams list:{len(tfr_not_in_good_notams)} // {len(tfr_notams_df)} ')
-    
-   # compare with human_matches
-    sql = """ select * from human_matches  """
-    human_matches_df = pd.read_sql_query(sql, conn)
-    found_in_human_matches= []
-    not_found_in_human_matches = []
-    for _, match in human_matches_df.iterrows():
-        if (good_notams_df['NOTAM_REC_ID'] == match['NOTAM_REC_ID']).any():
-        # if len(good_notams_df[good_notams_df['NOTAM_REC_ID'] == match]):
-            found_in_human_matches.append(match)
-        else:
-            not_found_in_human_matches.append((match['LAUNCHES_REC_ID'],  match['NOTAM_REC_ID']))
-
-    print(f'Found good notams in human matches len:{len(found_in_human_matches)} .Total provided human_matches len:{len(human_matches_df)}')
-    
-    # compare with human_poor_matches
-    sql = """ select * from human_poor_matches  """
-    human_poor_matches_df = pd.read_sql_query(sql, conn)
-    poor_matches = human_poor_matches_df['NOTAM_REC_ID'].to_numpy()
-    found_in_poor_matches= []
-    for poor in poor_matches:
-        if (good_notams_df['NOTAM_REC_ID'] == poor).any():
-            found_in_poor_matches.append(poor)
-    print(f'Found in human poor matches len:{len(found_in_poor_matches)}')
 
 def convert_str_datetime_unix_datetime(date_time_str):
     date_format = "%Y-%m-%d %H:%M:%S"
@@ -179,7 +144,12 @@ def find_initial_tfr(conn_v, cur_v, launch):
 
     return tfr_notam
 
-def create_tfr_notams(conn_v, cur_v, launches_df):
+def create_tfr_notams(conn, conn_v, cur_v):
+    sql = """ select * from launches  """
+    launches_df = pd.read_sql_query(sql, conn)
+    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].fillna(9999)
+    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].astype('int')
+
     launches_has_no_tfr = []
     tfr_notams = []
     for index, launch in launches_df.iterrows():
@@ -188,7 +158,7 @@ def create_tfr_notams(conn_v, cur_v, launches_df):
         tfr_notam = find_initial_tfr(conn_v, cur_v, launch)
         if tfr_notam is not None:
             launch_spaceport_rec_id = launch['SPACEPORT_REC_ID']
-            # append a launch_rec_id column to a  TFR
+            # append a launch_rec_id, launch location, launch state location, spaceport_rec_id columns to a  TFR result
             launch_location, launch_state_location = get_launch_location(spaceports_dict, launch_spaceport_rec_id)
             launch_tfr_notam = pd.concat([pd.Series([launch['LAUNCHES_REC_ID']], index=['LAUNCHES_REC_ID']), tfr_notam])
             launch_tfr_notam = pd.concat([launch_tfr_notam,pd.Series([launch_location], index=['LAUNCH_LOCATION'])])
@@ -203,8 +173,8 @@ def create_tfr_notams(conn_v, cur_v, launches_df):
 
     results_df = pd.concat(tfr_notams)
     results_df = results_df.drop(columns=['E_CODE_LC'])
-    print(f'Total TFR count:{len(results_df)}')
-    print(f'Launch_rec_id without TFR: {launches_has_no_tfr}')
+    print(f'Total found TFR count:{len(results_df)}')
+    print(f'Launch_rec_id has no TFR: {launches_has_no_tfr}')
     return results_df
 
 # select NOTAMs matching the TFR exactly start or stop time, inclusion and exclusion words
@@ -242,26 +212,55 @@ def create_bad_notams(conn_v, cur_v):
     print(bad_notams_df)
     return bad_notams_df
     
+def verify_tfr_notams_in_good_notams_dataset(tfr_notams_df, good_notams_df ):
+    tfr_notams = tfr_notams_df['NOTAM_REC_ID'].to_numpy()
+    tfr_found_in_good_notams = []
+    tfr_not_found_in_good_notams = []
+    for trf in tfr_notams:
+        if (good_notams_df['NOTAM_REC_ID'] == trf).any():
+            tfr_found_in_good_notams.append(trf)
+        else:
+            tfr_not_found_in_good_notams.append(trf)
+    print(f'TFR in good_notams dataset : {len(tfr_found_in_good_notams)} // {len(tfr_notams_df)}')
+    print(f'TFR not in good_notams dataset:{len(tfr_not_found_in_good_notams)} // {len(tfr_notams_df)} ')
+    
+def verify_team_bravo_tfr_launch_ids_in_human_matches(conn, tfr_notams_df):
+    sql = """ select launches_rec_id from human_matches group by launches_rec_id """
+    hm_df = pd.read_sql_query(sql, conn)
 
-def create_tfr_train_dataset():
+    found_in_human_matches = []
+    not_found_in_human_matches = []
+    for _, launch in tfr_notams_df.iterrows():
+        if (launch['LAUNCHES_REC_ID'] == hm_df['LAUNCHES_REC_ID']).any():
+            found_in_human_matches.append(launch['LAUNCHES_REC_ID'])
+        else:
+            not_found_in_human_matches.append(launch['LAUNCHES_REC_ID'])
+
+    print(f'Human_matches launches_rec_id len:{len(hm_df)}')
+    print(f'Team Bravo launches_rec_ids same in Human_matches len:{len(found_in_human_matches)}')
+    print(f'Team Bravo launches_rec_ids not same in Human_matches len:{len(not_found_in_human_matches)}')
+
+    print(f'Found same: {found_in_human_matches}')
+    print(f'Not same: {not_found_in_human_matches}')
+
+def create_tfr_notams_dataset_and_train_dataset():
     conn = sqlite3.Connection("./data/svo_db_20201027.db")
     cursor = conn.cursor()
     (conn_v, cur_v) = create_virtual_full_text_search_notam_table(conn, cursor)
 
-    sql = """ select * from launches  """
-    launches_df = pd.read_sql_query(sql, conn)
-    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].fillna(9999)
-    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].astype('int')
-
+    
     ## create TFR notams
-    tfr_notams = create_tfr_notams(conn_v, cur_v, launches_df)
+    tfr_notams = create_tfr_notams(conn, conn_v, cur_v)
     tfr_notams.to_csv(f'./data/tfr_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
+    verify_team_bravo_tfr_launch_ids_in_human_matches(conn, tfr_notams )
 
+    # create good notams
     good_notams_df = create_good_notams(conn_v)
     good_notams_df.to_csv(f'./data/possitive_unique_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
     tfr_notams_df = pd.read_csv('./data/tfr_notams.csv', engine="python" )
-    check_good_notams(conn, tfr_notams_df,good_notams_df)
+    verify_tfr_notams_in_good_notams_dataset(tfr_notams_df,good_notams_df)
        
+    # create bad notams
     bad_notams_df = create_bad_notams(conn_v, cur_v)
     bad_notams_df.to_csv(f'./data/negative_unique_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
 

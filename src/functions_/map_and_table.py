@@ -20,9 +20,9 @@ sql = """ SELECT * FROM notam_centroids"""
 centroid_df = pd.read_sql_query(sql, conn)
 conn.close()
 
-matches_df = pd.read_csv("./data/team_bravo_siamese2_mix_matches.csv")
+matches_df = pd.read_csv("./data/team_bravo_siamese2_mix_matches.0719.csv")
 matches_df = pd.merge(matches_df, centroid_df, on="NOTAM_REC_ID")
-matches_df["E_CODE"] = matches_df["E_CODE"].apply(lambda text: text[:50])
+matches_df["E_CODE"] = matches_df["E_CODE"].apply(lambda text: text[:80])
 
 mapbox_access_token = open("./data/.mapbox_token").read()
 
@@ -63,6 +63,7 @@ for launch in launches:
 for launch in launches:
     fig.add_trace(
         go.Table(
+            columnwidth = [38,25, 100],
             header=dict(
                 values=["NOTAM_REC_ID", "SCORE", "TEXT"],
                 fill_color="#cad2d3",

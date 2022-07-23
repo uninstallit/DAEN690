@@ -63,11 +63,11 @@ for launch in launches:
 for launch in launches:
     fig.add_trace(
         go.Table(
-            columnwidth = [38,25, 100],
+            columnwidth = [23,23, 100],
             header=dict(
                 values=["NOTAM_REC_ID", "SCORE", "TEXT"],
                 fill_color="#cad2d3",
-                align="left",
+                align=['center', 'center', 'left']
             ),
             cells=dict(
                 values=[
@@ -76,7 +76,7 @@ for launch in launches:
                     matches_df[matches_df["LAUNCHES_REC_ID"] == launch]["E_CODE"],
                 ],
                 fill_color="#f3f3f1",
-                align="left",
+                align=['center', 'center', 'left'],
             ),
         ),
         row=1,

@@ -61,6 +61,25 @@ def plot_us_classification(cursor):
     fig.tight_layout()
     plt.show()
 
+def plot_classification(cursor):
+    print(f'plot_classification')
+    sql = """ SELECT CLASSIFICATION, NOTAM_TYPE FROM notams """
+    data = cursor.execute(sql).fetchall()
+    df = pd.DataFrame({ 
+    'CLASSIFICATION': [d[0] for d in data], 
+    'NOTAM_TYPE': [d[1] for d in data]})
+
+
+    # plotting four plots in one tile 2 x 2
+    # fig, [[ax1, ax2],[ax3,ax4]] = plt.subplots(nrows=2, ncols=2, figsize=(10, 5))
+    fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(10, 5))
+    sns.countplot(data=df, x='CLASSIFICATION', order = df['CLASSIFICATION'].value_counts().index,  ax=ax1, palette="Blues_r")
+    ax1.set_title('Count NOTAMs by Classification')
+    ax1.set_ylabel('Count')
+    ax1.set_xlabel('Classification')
+    fig.tight_layout()
+    plt.show()
+
 def plot_us_notam_type(cursor):
     print(f'plot_us_notam_type')
     sql = """ SELECT CLASSIFICATION, NOTAM_TYPE FROM notams """
@@ -108,7 +127,7 @@ def plot_notam_missing_polygons(cursor):
 
     # plotting four plots in one tile 2 x 2
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
-    sns.countplot(data= df, x='classification', ax=ax1)
+    sns.countplot(data= df, x='classification', ax=ax1, )
     ax1.set_title('Polygons Not Available by Classification')
     ax1.set_ylabel('Count')
     ax1.set_xlabel('NOTAM by Classification')
@@ -120,6 +139,8 @@ def plot_notam_missing_polygons(cursor):
 
     fig.tight_layout()
     plt.show()
+
+ 
  
 def plot_launch_data(conn,  cursor):
     sql = """ select LAUNCHES_REC_ID, LAUNCH_DATE from launches """
@@ -129,8 +150,8 @@ def plot_launch_data(conn,  cursor):
     launches_df['LAUNCH_YEAR'] = [ datetime.datetime.strptime(x, "%Y-%m-%d %H:%M:%S").strftime("%Y") for x in launches_df['LAUNCH_DATE'] ]
 
     fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(8, 5))
-    sns.countplot(data= launches_df, x='LAUNCH_YEAR', ax=ax1)
-    ax1.set_title('LAUNCHES by YEAR')
+    sns.countplot(data= launches_df, x='LAUNCH_YEAR', ax=ax1, palette="Set3")
+    ax1.set_title('Count LAUNCHES by YEAR')
     ax1.set_ylabel('Count')
     ax1.set_xlabel('LAUNCHES')
     fig.tight_layout()
@@ -140,12 +161,12 @@ def main():
     conn = sqlite3.Connection("./data/svo_db_20201027.db")
     cursor = conn.cursor()
     
-    #plot_notam_data(cursor)
-    #plot_notam_missing_polygons(cursor)
+    # plot_notam_missing_polygons(cursor)
     # plot_classification_and_type(cursor)
-    #plot_us_classification(cursor)
+    # plot_us_classification(cursor)
+    # plot_classification(cursor)
     #plot_us_notam_type(cursor)
-    #plot_launch_data(conn,  cursor)
+    plot_launch_data(conn,  cursor)
     
     conn.close()
     

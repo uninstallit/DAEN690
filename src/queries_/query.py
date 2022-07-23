@@ -351,13 +351,14 @@ def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_in_m
         "LAUNCHES_REC_ID",
         "NOTAM_REC_ID",
         "SCORE",
-        "POSSIBLE_START_DATE",
-        "POSSIBLE_END_DATE",
-        "E_CODE",
-        "LOCATION_CODE",
+        # "POSSIBLE_START_DATE",
+        # "POSSIBLE_END_DATE",
         "ACCOUNT_ID",
-        "TFR_FLAG",
-        "MAX_ALT_K",
+        "E_CODE",
+        # "LOCATION_CODE",
+        #"ACCOUNT_ID",
+        # "TFR_FLAG",
+        # "MAX_ALT_K",
     ]
     ss_results = []
     tx_results = []
@@ -375,13 +376,13 @@ def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_in_m
         launch_location, launch_state_location = get_launch_location(
             spaceports_dict, spaceport_rec_id
         )
-
+        pd.set_option('display.max_colwidth', 100)
         print(f"\n---Semantic Search Model")
         print(
             f"Launch_id: {launch_rec_id} date: {launch_date} {launch_location} {launch_state_location}"
         )
         print(
-            f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE'] }"
+            f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'],  '%.100s...' % tfr['E_CODE'] }"
         )
         print(f"Related NOTAMs:")
         print(ss_matches_df[display_cols])
@@ -391,7 +392,7 @@ def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_in_m
             f"Launch_id: {launch_rec_id} date: {launch_date} {launch_location} {launch_state_location}"
         )
         print(
-            f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'], '%.100s...' % tfr['E_CODE']}"
+            f"TFR {tfr['NOTAM_REC_ID'], tfr['POSSIBLE_START_DATE'], tfr['POSSIBLE_END_DATE'],  '%.100s...' % tfr['E_CODE']}"
         )
         print(f"Related NOTAMs:")
         print(ts_matches_df[display_cols])

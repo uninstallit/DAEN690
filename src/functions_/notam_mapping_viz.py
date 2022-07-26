@@ -84,7 +84,7 @@ with open('./data/2_FL_semantic_matches_spaceport_2_Cape_FL.csv', 'r') as my_fil
         semantic_matches.append(row)
 
 matches = """ 
-    CREATE TABLE IF NOT EXISTS matches (
+    CREATE TABLE IF NOT EXISTS semantic_matches (
     LAUNCH_REC_ID           INTEGER,
     NOTAM_REC_ID            INTEGER,
     SCORE                   REAL,
@@ -102,8 +102,68 @@ matches = """
 my_cursor.execute(matches)
 my_connect.commit()
 
-my_cursor.execute("DELETE FROM matches")
-my_cursor.executemany("INSERT INTO matches VALUES(?,?,?,?,?,?,?,?,?,?,?,?);", semantic_matches)
+my_cursor.execute("DELETE FROM semantic_matches")
+my_cursor.executemany("INSERT INTO semantic_matches VALUES(?,?,?,?,?,?,?,?,?,?,?,?);", semantic_matches)
+my_connect.commit()
+
+siamese_text_matches = []
+with open('./data/2_FL_siamese1_text_matches_spaceport_2_Cape_FL.csv', 'r') as my_file:
+    my_reader = csv.reader(my_file)
+    next(my_reader)
+    for row in my_reader:
+        siamese_text_matches.append(row)
+
+matches = """ 
+    CREATE TABLE IF NOT EXISTS siamese_text_matches (
+    LAUNCH_REC_ID           INTEGER,
+    NOTAM_REC_ID            INTEGER,
+    SCORE                   REAL,
+    LAUNCH_DATE             DATETIME,
+    START_DATE              DATETIME,
+    END_DATE                DATETIME,
+    E_CODE                  TEXT,
+    LOCATION_CODE           TEXT,
+    ACCOUNT_ID              TEXT,
+    TFR_FLAG                INTEGER,
+    MIN_ALT                 INTEGER,
+    MAX_ALT                 INTEGER);
+    """
+    
+my_cursor.execute(matches)
+my_connect.commit()
+
+my_cursor.execute("DELETE FROM siamese_text_matches")
+my_cursor.executemany("INSERT INTO siamese_text_matches VALUES(?,?,?,?,?,?,?,?,?,?,?,?);", siamese_text_matches)
+my_connect.commit()
+
+siamese_mix_matches = []
+with open('./data/2_FL_siamese2_mix_matches_spaceport_2_Cape_FL.csv', 'r') as my_file:
+    my_reader = csv.reader(my_file)
+    next(my_reader)
+    for row in my_reader:
+        siamese_mix_matches.append(row)
+
+matches = """ 
+    CREATE TABLE IF NOT EXISTS siamese_mix_matches (
+    LAUNCH_REC_ID           INTEGER,
+    NOTAM_REC_ID            INTEGER,
+    SCORE                   REAL,
+    LAUNCH_DATE             DATETIME,
+    START_DATE              DATETIME,
+    END_DATE                DATETIME,
+    E_CODE                  TEXT,
+    LOCATION_CODE           TEXT,
+    ACCOUNT_ID              TEXT,
+    TFR_FLAG                INTEGER,
+    MIN_ALT                 INTEGER,
+    MAX_ALT                 INTEGER);
+    """
+    
+my_cursor.execute(matches)
+my_connect.commit()
+
+my_cursor.execute("DELETE FROM siamese_mix_matches")
+my_cursor.executemany("INSERT INTO siamese_mix_matches VALUES(?,?,?,?,?,?,?,?,?,?,?,?);", siamese_mix_matches)
 my_connect.commit()
 
 def world_map(W):
@@ -246,6 +306,7 @@ def tfr_notam_map(T):
     tfrdf.columns = ['REC_ID_1', 'REC_ID_2', 'REC_ID_3', 'LATITUDE', 'LONGITUDE', 'CLASSIFICATION', 'RADIUS_NM', 'SPACEPORT', 'E_CODE']
     tfrdf['REC_ID'] = list(zip(tfrdf.REC_ID_1, tfrdf.REC_ID_2, tfrdf.REC_ID_3))
     tfrdf['MATCHES'] = tfrdf['E_CODE'].apply(lambda text: text[:100])
+    tfrdf['MATCHES'] = list(zip(tfrdf.REC_ID, tfrdf.MATCHES))
     frames2 = [tfrdf, space_df]
     tfr_df = pd.concat(frames2)
     print(tfr_df.shape[0])
@@ -312,9 +373,9 @@ def tfr_year_map(my_connect,  my_cursor):
     fig5.write_html('./data/tfr_year_map.html')
     return fig5.show()
 
-def notam_matches_map():
+def semantic_matches_map():
 
-    index_query = my_cursor.execute(""" SELECT DISTINCT LAUNCH_REC_ID from matches """).fetchall()
+    index_query = my_cursor.execute(""" SELECT DISTINCT LAUNCH_REC_ID from semantic_matches """).fetchall()
     index = [x[0] for x in index_query]
     # print(index)
     
@@ -328,7 +389,7 @@ def notam_matches_map():
         launchdf['CLASSIFICATION'] = 'LAUNCH'
         launchdf['HOVER'] = list(zip(launchdf.REC_ID, launchdf.VEHICLE_NAME))
 
-        matches_query = my_cursor.execute(""" select t1.LAUNCH_REC_ID, t1.NOTAM_REC_ID, t1.SCORE, t2.LATITUDE, t2.LONGITUDE, t1.E_CODE, t1.TFR_FLAG FROM matches AS t1 CROSS JOIN notam_centroids AS t2 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND t1.LAUNCH_REC_ID = """ + str(i) + """; """)
+        matches_query = my_cursor.execute(""" select t1.LAUNCH_REC_ID, t1.NOTAM_REC_ID, t1.SCORE, t2.LATITUDE, t2.LONGITUDE, t1.E_CODE, t1.TFR_FLAG FROM semantic_matches AS t1 CROSS JOIN notam_centroids AS t2 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND t1.LAUNCH_REC_ID = """ + str(i) + """; """)
         matchdf = pd.DataFrame(matches_query)
         matchdf.columns = ['LAUNCH_REC_ID', 'NOTAM_REC_ID', 'SCORE', 'LATITUDE', 'LONGITUDE', 'E_CODE', 'TFR_FLAG']
         matchdf['E_CODE'] = matchdf['E_CODE'].apply(lambda text: text[:100])
@@ -366,11 +427,11 @@ def notam_matches_map():
                             color="CLASSIFICATION", # which column to use to set the color of markers
                             # size="RADIUS_NM", # size of markers
                             projection="natural earth",
-                            title = "<b>NOTAM Matches for Launch {0}</b><br>Hover for NOTAM information".format(i)
+                            title = "<b>Semantic Search Matches for Launch {0}</b><br>Hover for NOTAM information".format(i)
                             )
 
         fig6.update_layout(
-                        title = "<b>NOTAM Matches for Launch {0}</b><br>Hover for NOTAM information".format(i),
+                        title = "<b>Semantic Search Matches for Launch {0}</b><br>Hover for NOTAM information".format(i),
                         geo = dict(
                             scope='usa',
                             projection_type='albers usa',
@@ -381,7 +442,151 @@ def notam_matches_map():
                             countrywidth = 0.5,
                             subunitwidth = 0.5))
         
-        plotly.offline.plot(fig6, filename='./maps/semantic_match_for_launch_{0}.html'.format(i)) 
+        plotly.offline.plot(fig6, filename='./semantic_maps/semantic_match_for_launch_{0}.html'.format(i)) 
+    return
+
+def siamese_text_matches_map():
+
+    index_query = my_cursor.execute(""" SELECT DISTINCT LAUNCH_REC_ID from siamese_text_matches """).fetchall()
+    index = [x[0] for x in index_query]
+    # print(index)
+    
+    for i in index:
+        if i != 391:
+            continue
+        launch_query = my_cursor.execute(""" SELECT t1.LAUNCHES_REC_ID, t1.VEHICLE_NAME, t2.LATITUDE, t2.LONGITUDE from launches AS t1 CROSS JOIN spaceports AS t2 WHERE t1.SPACEPORT_REC_ID = t2.SPACEPORT_REC_ID AND t1.LAUNCHES_REC_ID = """ + str(i) + """; """).fetchall()
+
+        launchdf = pd.DataFrame(launch_query)
+        launchdf.columns = ['REC_ID', 'VEHICLE_NAME', 'LATITUDE', 'LONGITUDE']
+        launchdf['CLASSIFICATION'] = 'LAUNCH'
+        launchdf['HOVER'] = list(zip(launchdf.REC_ID, launchdf.VEHICLE_NAME))
+
+        matches_query = my_cursor.execute(""" select t1.LAUNCH_REC_ID, t1.NOTAM_REC_ID, t1.SCORE, t2.LATITUDE, t2.LONGITUDE, t1.E_CODE, t1.TFR_FLAG FROM siamese_text_matches AS t1 CROSS JOIN notam_centroids AS t2 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND t1.LAUNCH_REC_ID = """ + str(i) + """; """)
+        matchdf = pd.DataFrame(matches_query)
+        matchdf.columns = ['LAUNCH_REC_ID', 'NOTAM_REC_ID', 'SCORE', 'LATITUDE', 'LONGITUDE', 'E_CODE', 'TFR_FLAG']
+        matchdf['E_CODE'] = matchdf['E_CODE'].apply(lambda text: text[:100])
+        matchdf['HOVER'] = list(zip(matchdf.NOTAM_REC_ID, matchdf.SCORE, matchdf.E_CODE))
+        matchdf['CLASSIFICATION'] = 'MATCH'
+
+        tfr_row_index = 999
+        for index, row in matchdf.iterrows():
+            if row['TFR_FLAG'] == 1:
+                tfr_row_index = index
+                matchdf.loc[index, 'CLASSIFICATION'] = 'TFR'
+            else:
+                matchdf.loc[index, 'CLASSIFICATION'] = 'MATCH'
+        
+        for index, row in matchdf.iterrows():
+            if index != tfr_row_index:
+                if row['SCORE'] >= .9 and row['CLASSIFICATION'] == 'MATCH':
+                    matchdf.loc[index, 'CLASSIFICATION'] = 'GOOD MATCH'
+                else:
+                    matchdf.loc[index, 'CLASSIFICATION'] = 'POOR MATCH'
+
+
+        frames2 = [matchdf, launchdf]
+        match_df = pd.concat(frames2)
+        # print(match_df.shape[0])
+        # print(match_df)
+
+        match_geometry = [Point(xy) for xy in zip(match_df['LONGITUDE'], match_df['LATITUDE'])]
+        match_gdf = GeoDataFrame(match_df, geometry=match_geometry)
+
+        fig6 = px.scatter_geo(match_gdf,
+                            lat=match_gdf.geometry.y,
+                            lon=match_gdf.geometry.x,
+                            hover_name='HOVER',
+                            color="CLASSIFICATION", # which column to use to set the color of markers
+                            # size="RADIUS_NM", # size of markers
+                            projection="natural earth",
+                            title = "<b>Siamese Text Matches for Launch {0}</b><br>Hover for NOTAM information".format(i)
+                            )
+
+        fig6.update_layout(
+                        title = "<b>Siamese Text Matches for Launch {0}</b><br>Hover for NOTAM information".format(i),
+                        geo = dict(
+                            scope='usa',
+                            projection_type='albers usa',
+                            showland = True,
+                            landcolor = "rgb(250, 250, 250)",
+                            subunitcolor = "rgb(217, 217, 217)",
+                            countrycolor = "rgb(217, 217, 217)",
+                            countrywidth = 0.5,
+                            subunitwidth = 0.5))
+        
+        plotly.offline.plot(fig6, filename='./siamese1_maps/siamese_text_match_for_launch_{0}.html'.format(i)) 
+    return
+
+def siamese_mix_matches_map():
+
+    index_query = my_cursor.execute(""" SELECT DISTINCT LAUNCH_REC_ID from siamese_mix_matches """).fetchall()
+    index = [x[0] for x in index_query]
+    # print(index)
+    
+    for i in index:
+        if i != 391:
+            continue
+        launch_query = my_cursor.execute(""" SELECT t1.LAUNCHES_REC_ID, t1.VEHICLE_NAME, t2.LATITUDE, t2.LONGITUDE from launches AS t1 CROSS JOIN spaceports AS t2 WHERE t1.SPACEPORT_REC_ID = t2.SPACEPORT_REC_ID AND t1.LAUNCHES_REC_ID = """ + str(i) + """; """).fetchall()
+
+        launchdf = pd.DataFrame(launch_query)
+        launchdf.columns = ['REC_ID', 'VEHICLE_NAME', 'LATITUDE', 'LONGITUDE']
+        launchdf['CLASSIFICATION'] = 'LAUNCH'
+        launchdf['HOVER'] = list(zip(launchdf.REC_ID, launchdf.VEHICLE_NAME))
+
+        matches_query = my_cursor.execute(""" select t1.LAUNCH_REC_ID, t1.NOTAM_REC_ID, t1.SCORE, t2.LATITUDE, t2.LONGITUDE, t1.E_CODE, t1.TFR_FLAG FROM siamese_mix_matches AS t1 CROSS JOIN notam_centroids AS t2 WHERE t1.NOTAM_REC_ID = t2.NOTAM_REC_ID AND t1.LAUNCH_REC_ID = """ + str(i) + """; """)
+        matchdf = pd.DataFrame(matches_query)
+        matchdf.columns = ['LAUNCH_REC_ID', 'NOTAM_REC_ID', 'SCORE', 'LATITUDE', 'LONGITUDE', 'E_CODE', 'TFR_FLAG']
+        matchdf['E_CODE'] = matchdf['E_CODE'].apply(lambda text: text[:100])
+        matchdf['HOVER'] = list(zip(matchdf.NOTAM_REC_ID, matchdf.SCORE, matchdf.E_CODE))
+        matchdf['CLASSIFICATION'] = 'MATCH'
+
+        tfr_row_index = 999
+        for index, row in matchdf.iterrows():
+            if row['TFR_FLAG'] == 1:
+                tfr_row_index = index
+                matchdf.loc[index, 'CLASSIFICATION'] = 'TFR'
+            else:
+                matchdf.loc[index, 'CLASSIFICATION'] = 'MATCH'
+        
+        for index, row in matchdf.iterrows():
+            if index != tfr_row_index:
+                if row['SCORE'] >= .9 and row['CLASSIFICATION'] == 'MATCH':
+                    matchdf.loc[index, 'CLASSIFICATION'] = 'GOOD MATCH'
+                else:
+                    matchdf.loc[index, 'CLASSIFICATION'] = 'POOR MATCH'
+
+
+        frames2 = [matchdf, launchdf]
+        match_df = pd.concat(frames2)
+        # print(match_df.shape[0])
+        # print(match_df)
+
+        match_geometry = [Point(xy) for xy in zip(match_df['LONGITUDE'], match_df['LATITUDE'])]
+        match_gdf = GeoDataFrame(match_df, geometry=match_geometry)
+
+        fig6 = px.scatter_geo(match_gdf,
+                            lat=match_gdf.geometry.y,
+                            lon=match_gdf.geometry.x,
+                            hover_name='HOVER',
+                            color="CLASSIFICATION", # which column to use to set the color of markers
+                            # size="RADIUS_NM", # size of markers
+                            projection="natural earth",
+                            title = "<b>Siamese Mix Matches for Launch {0}</b><br>Hover for NOTAM information".format(i)
+                            )
+
+        fig6.update_layout(
+                        title = "<b>Siamese Mix Matches for Launch {0}</b><br>Hover for NOTAM information".format(i),
+                        geo = dict(
+                            scope='usa',
+                            projection_type='albers usa',
+                            showland = True,
+                            landcolor = "rgb(250, 250, 250)",
+                            subunitcolor = "rgb(217, 217, 217)",
+                            countrycolor = "rgb(217, 217, 217)",
+                            countrywidth = 0.5,
+                            subunitwidth = 0.5))
+        
+        plotly.offline.plot(fig6, filename='./siamese2_maps/siamese_mix_match_for_launch_{0}.html'.format(i)) 
     return
 
 def main():
@@ -395,12 +600,16 @@ def main():
     # all_us_map(U)
 
     G = 1000
-    # good_notam_map(G)
+    good_notam_map(G)
 
     T = 1000
-    # tfr_notam_map(T)
+    tfr_notam_map(T)
 
-    notam_matches_map()
+    # semantic_matches_map()
+
+    # siamese_text_matches_map()
+
+    # siamese_mix_matches_map()
 
     # tfr_year_map(my_connect,  my_cursor)
     

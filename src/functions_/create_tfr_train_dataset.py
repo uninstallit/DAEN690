@@ -40,7 +40,7 @@ exclusions = """ NOT (obst* OR fire OR unmanned OR crane OR uas OR aerial OR dri
                             baloon* OR balloon* OR hurricane OR "transfered from ship" OR "troop transport" OR
                             construction OR "radio unavailable" OR "handled by falcon radio" OR rattlesnake) """
     
-# add vehicle name to the initial inclusion_words for this dataset notams
+# add vehicle name to the initial inclusion_words since it related to launches
 inclusions = """launch OR space OR "91*143" OR "attention airline dispatchers" OR "hazard area" 
             OR "stnr alt" OR "stnr altitude" OR "stationary alt*" 
             OR "temporary flight restriction*" OR "temporary flt rest*" OR "flight rest*"
@@ -125,7 +125,6 @@ def find_initial_tfr(conn_v, cur_v, launch):
             and (DATETIME(POSSIBLE_END_DATE) >= DATETIME('{launch_date}') AND DATETIME(POSSIBLE_END_DATE) < DATETIME('{launch_date}', '+30 days')) 
             and (LOCATION_CODE in {spaceport_location} or LOCATION_NAME in {spaceport_location} or AFFECTED_FIR in {spaceport_location})
             and NOTAM_TYPE != 'NOTAMC'
-            and MAX_ALT > 15.0
             and E_CODE_LC not null
             and E_CODE_LC MATCH '{q}' 
             """.format(launch_date=launch_date, spaceport_location = launch_pad_artcc, q=search1)
@@ -145,16 +144,16 @@ def find_initial_tfr(conn_v, cur_v, launch):
     return tfr_notam
 
 def create_tfr_notams(conn, conn_v, cur_v):
-    sql = """ select * from launches  """
+
+    # select launches that have valid spaceport ids
+    sql = """ select L.* from launches as L, spaceports as S where 
+                L.spaceport_rec_id = S.spaceport_rec_id 
+                and S.spaceport_rec_id not null """
     launches_df = pd.read_sql_query(sql, conn)
-    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].fillna(9999)
-    launches_df["SPACEPORT_REC_ID"] = launches_df["SPACEPORT_REC_ID"].astype('int')
 
     launches_has_no_tfr = []
     tfr_notams = []
     for index, launch in launches_df.iterrows():
-        if has_launch_spaceport_rec_id(spaceports_dict, launch['SPACEPORT_REC_ID']) == False:
-            continue
         tfr_notam = find_initial_tfr(conn_v, cur_v, launch)
         if tfr_notam is not None:
             launch_spaceport_rec_id = launch['SPACEPORT_REC_ID']
@@ -173,6 +172,7 @@ def create_tfr_notams(conn, conn_v, cur_v):
 
     results_df = pd.concat(tfr_notams)
     results_df = results_df.drop(columns=['E_CODE_LC'])
+    results_df =  results_df.sort_values('LAUNCHES_REC_ID')
     print(f'Total found TFR count:{len(results_df)}')
     print(f'Launch_rec_id has no TFR: {launches_has_no_tfr}')
     return results_df
@@ -257,7 +257,7 @@ def create_tfr_notams_dataset_and_train_dataset():
     # create good notams
     good_notams_df = create_good_notams(conn_v)
     good_notams_df.to_csv(f'./data/possitive_unique_notams.{datetime.now().strftime("%m%d")}.csv', index=False)
-    tfr_notams_df = pd.read_csv('./data/tfr_notams.csv', engine="python" )
+    tfr_notams_df = pd.read_csv('./data/tfr_notams.0729.csv', engine="python" )
     verify_tfr_notams_in_good_notams_dataset(tfr_notams_df,good_notams_df)
        
     # create bad notams

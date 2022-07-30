@@ -90,7 +90,7 @@ def set_param_features_pipeline():
     features_pipeline.set_params(**{"idx_8__skip": False})
 
 
-def semantic_search(query_ids, tfr_embeddings, query_embeddings, top_pick_param):
+def search_by_semantic_search_model(query_ids, tfr_embeddings, query_embeddings, top_pick_param):
     ss_selected = []
     for idx, notam_rec_id in enumerate(query_ids):
         similarity_score = tf.keras.metrics.CosineSimilarity()(
@@ -101,7 +101,7 @@ def semantic_search(query_ids, tfr_embeddings, query_embeddings, top_pick_param)
     return ss_selected
 
 
-def siamese_text_search(query_ids, tfr_embeddings, query_embeddings, top_pick_param):
+def search_by_text_model(query_ids, tfr_embeddings, query_embeddings, top_pick_param):
     base_network = tf.keras.models.load_model(root + "/src/saved_models_/smux_model")
     cosine_similarity = tf.keras.metrics.CosineSimilarity()
     anch_prediction = base_network.predict(tfr_embeddings)
@@ -122,7 +122,7 @@ def siamese_text_search(query_ids, tfr_embeddings, query_embeddings, top_pick_pa
     return text_s_selected
 
 
-def siamese_mix_search(
+def search_by_mix_model(
     query_ids, tfr_data, tfr_embeddings, query_data, query_embeddings, top_pick_param
 ):
     base_network = tf.keras.models.load_model(root + "/src/saved_models_/qsmy_model")
@@ -225,14 +225,14 @@ def query(conn, centroid_df, launch_date, tfr_df, top_pick_param, radius_in_mile
     query_data = query_data[:, 4:-1].astype(
         "float32"
     ) 
-    ss_selected = semantic_search(
+    ss_selected = search_by_semantic_search_model(
         query_ids, tfr_embeddings, query_embeddings, top_pick_param
     )
     
-    ts_selected = siamese_text_search(
+    ts_selected = search_by_text_model(
         query_ids, tfr_embeddings, query_embeddings, top_pick_param
     )
-    ms_selected = siamese_mix_search(
+    ms_selected = search_by_mix_model(
         query_ids,
         tfr_data,
         tfr_embeddings,
@@ -412,13 +412,13 @@ def predict_related_notams(launch_ids_param,top_pick_param, balltree_radius_in_m
     ts_results_df = pd.concat(tx_results)
     ms_results_df = pd.concat(ms_results)
     ss_results_df.to_sql(
-        "team_bravo_semantic_matches", conn, if_exists="replace", index=False
+        "team_bravo_semantic_search_matches", conn, if_exists="replace", index=False
     )
     ts_results_df.to_sql(
-        "team_bravo_siamese_txt_matches", conn, if_exists="replace", index=False
+        "team_bravo_txt_matches", conn, if_exists="replace", index=False
     )
     ms_results_df.to_sql(
-        "team_bravo_siamese_mix_matches", conn, if_exists="replace", index=False
+        "team_bravo_mix_matches", conn, if_exists="replace", index=False
     )
     conn.close()
     return (ss_results_df, ts_results_df, ms_results_df)

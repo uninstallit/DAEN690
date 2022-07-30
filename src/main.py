@@ -36,14 +36,10 @@ def main():
         (ss_results_df, ts_results_df,ms_results_df) = predict_related_notams(launch_ids_param, top_pick_param, balltree_radius_in_miles_param, debug_flag)
 
         #####  specify the port output in the file names 
-        # ss_results_df.to_csv(f"./data/23_CA_semantic_matches_spaceport_23_Lompocs_CA.csv", index=False)
-        # ts_results_df.to_csv(f"./data/23_CA_siamese1_text_matches_spaceport_23_Lompocs_CA.csv", index=False)
-        # ms_results_df.to_csv(f"./data/23_CA_siamese2_mix_matches_spaceport_23_Lompocs_CA.csv", index=False)
+        ss_results_df.to_csv(f'./data/team_bravo_semantic_search_matches.{datetime.now().strftime("%m%d")}.csv', index=False)
+        ts_results_df.to_csv(f'./data/team_bravo_text_matches.{datetime.now().strftime("%m%d")}.csv', index=False)
+        ms_results_df.to_csv(f'./data/team_bravo_mix_matches.{datetime.now().strftime("%m%d")}.csv', index=False)
 
-        ss_results_df.to_csv(f'./data/team_bravo_semantic_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
-        ts_results_df.to_csv(f'./data/team_bravo_siamese1_text_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
-        ms_results_df.to_csv(f'./data/team_bravo_siamese2_mix_matches_spaceport.{datetime.now().strftime("%m%d")}.csv', index=False)
 
-    
 if __name__ == "__main__":
     main()

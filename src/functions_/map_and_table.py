@@ -28,10 +28,12 @@ mapbox_access_token = open("./data/.mapbox_token").read()
 
 # add showcase notams
 launches = [284, 391, 466]
+#launches = [335, 466]
 
 fig = make_subplots(
     rows=1,
     cols=2,
+    column_widths=[0.3, 0.7],
     specs=[[{"type": "mapbox"}, {"type": "table"}]],
     horizontal_spacing=0.1,
 )
@@ -48,7 +50,7 @@ for launch in launches:
                 showscale=True,
                 cmin=-1,
                 cmax=1,
-                colorbar_x=0.45,
+                colorbar_x=0.30,
             ),
             text=matches_df[matches_df["LAUNCHES_REC_ID"] == launch][
                 "NOTAM_REC_ID"
@@ -63,7 +65,7 @@ for launch in launches:
 for launch in launches:
     fig.add_trace(
         go.Table(
-            columnwidth = [23,23, 100],
+            columnwidth = [23, 23, 100],
             header=dict(
                 values=["NOTAM_REC_ID", "SCORE", "TEXT"],
                 fill_color="#cad2d3",

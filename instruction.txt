@@ -1,0 +1,101 @@
+
+                    How to Setup and Run this Project 
+
+1. Enviroment setup
+    Python 3.9
+    IDE - Visual Studio Code
+    Database - SQLite came with Python
+    The following libraries are needed:
+        sqlite3, pandas, csv, traceback, json, random,  copy, time, datetime
+        matplotlib.pyplot 
+        itertools 
+        tensorflow, 
+        plotly.graph_objects,
+        plotly.subplots 
+        sklearn
+        sentence_transformers 
+        torch
+
+2. Source codes
+   Two options to obtain source codes:
+   Option 1. Download from github
+     git clone https://github.com/uninstallit/DAEN690.git
+
+   Option 2. Copy DAEN690-source-code.zip from the provided folder
+     Unzip the file and rename to folder from DAEN690-main to DAEN690
+
+   Create a data folder from DAEN690 folder
+   cd /DAEN690
+   mkdir data
+
+3. Datasets
+   Option 1.  If using SQLite database, download svo_db_20201027.db.sqlite.0729.zip and unzip it to the data folder.
+   /DAEN690/data/svo_db_20201027.db 
+
+   Option 2. Copy the following zip files and unzip them into the folder /DAEN690/data
+   database_csv_file.zip
+   tfr_notams.0709.csv
+
+   Run the following py files in a specified order to import csv files to a desired database.
+   May want to change the Connection to the desired database connection instead of sqlite3.Connection:
+
+   conn = sqlite3.Connection("./data/svo_db_20201027.db")
+
+   a. Import csv files to SQLite Database
+    run- /src/functions/import_sqlite.py
+
+   b. Make artcc centroid table
+    run- /src/functions/create_artcc_centroid.py
+
+   c. Make notam centroids table from the provided polygons
+    run - /src/functions/make_centroid_from_provided_polygons.py
+
+   d. Make notam centroids for NOTAMs that polygons were not provided using
+      the external sources external_airports_icao and external_artcc_boundary
+    run- /src/functions/make_notam_centroid_missing_polygons.py
+   
+4. Make prediction
+   In /DAEN690/main.py, line 17, set it to
+   PREDICT_NOTAMS_FLAG = True
+
+   run-  /DAEN690/main.py
+
+   The results will be written to csv files:
+    ./data/team_bravo_semantic_search_matches.mmdd.csv
+    ./data/team_bravo_text_matches.mmdd.csv
+    ./data/team_bravo_mix_matches.mmdd.csv
+
+5. Plot NOTAMs on the map:
+ In /DAEN690/src/functions/map_and_table.py, line 30, change the desirable launch rec id. For example:
+ launches = [284, 391, 466]
+ The output map and NOTAMs will be on the browser
+
+6. Optional- Training datasets
+    In the provided folder, there is trainset.0709.zip
+
+    If recreating training datasets is needed:
+    In /DAEN690/main.py, line 16, set it to
+    CREATE_TRAIN_SET_FLAG = True
+
+    run-  /DAEN690/main.py
+    Output files:
+    /DAEN690/data/possitive_unique_notams.mmdd.csv
+    /DAEN690/data/negative_unique_notams.mmdd.csv
+
+7. Results
+   file results.0709.zip
+        team_bravo_semantic_search_matches.0729.csv
+        team_bravo_text_matches.0729.csv
+        team_bravo_mix_matches.0729.csv
+
+   file results_matches_not_matches.0709.zip
+      same result data above, but separated matches and not matches to different two files using threshold score >= 0.95
+      
+      team_bravo_semantic_search_good_matches.0729.csv
+      team_bravo_semantic_search_poor_matches.0729.csv
+
+      team_bravo_text_good_matches.0729.csv
+      team_bravo_text_poor_matches.0729.csv
+
+      team_bravo_mix_good_matches.0729.csv
+      team_bravo_mix_poor_matches.0729.csv
